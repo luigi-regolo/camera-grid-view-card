@@ -196,7 +196,7 @@ test('compact dashboard dimensions and focus border remain as approved',()=>{
   const card=new Card();card.setConfig({cameras:[{name:'Spioncino'},{name:'Giardino'}]});
   const html=card.shadowRoot.innerHTML;
   assert.match(html,/\.cg-grid\{[^}]*gap:12px\}/);
-  assert.match(html,/\.cg-cell\{[^}]*height:82px;[^}]*border-radius:16px/);
+  assert.match(html,/\.cg-cell\{[^}]*height:auto;min-height:82px;[^}]*border-radius:16px/);
   assert.match(html,/\.cg-cell:hover,\.cg-cell:focus\{border-color:var\(--cg-accent\)\}/);
   assert.match(html,/class="cg-icon-orb"/);
 });
@@ -229,9 +229,9 @@ test('dashboard uses an inner container instead of viewport-only media rules',()
   assert.match(html, /class="cg-grid-host"><div class="cg-grid">/);
   assert.match(html, /\.cg-grid-host\{container:cg-camera-grid\/inline-size/);
   assert.match(html, /@container cg-camera-grid \(max-width:480px\)\{/);
-  assert.match(html, /@container cg-camera-grid \(max-width:480px\)\{[\s\S]*?\.cg-grid\{grid-template-columns:1fr\}/);
+  assert.match(html, /@container cg-camera-grid \(max-width:480px\)\{[\s\S]*?\.cg-grid\{grid-template-columns:repeat\(var\(--cg-narrow-cols,2\),minmax\(0,1fr\)\)\}/);
   assert.match(html, /\.cg-cell,\.cg-cell\.cg-with-preview\{height:auto;min-height:82px/);
-  assert.match(html, /\.cg-cell\{[^}]*height:82px/);
+  assert.match(html, /\.cg-cell\{[^}]*height:auto;min-height:82px/);
   assert.match(html, /\.cg-cell:hover,\.cg-cell:focus\{border-color:var\(--cg-accent\)\}/);
 });
 
@@ -242,4 +242,19 @@ test('narrow responsive container encloses only grid, not fixed-position modal',
   assert.match(html, /<div class="cg-grid-host"><div class="cg-grid">/);
   assert.match(html, /<\/div><\/div><div class="cg-backdrop"/);
   assert.match(html, /Dettagli e stato/);
+});
+
+
+test('narrow dashboard keeps two cameras side-by-side with fluid tile heights',()=>{
+  const card=new Card();card.setConfig({layout:'auto',cameras:[{name:'Porta'},{name:'Giardino'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html, /--cg-cols:2;--cg-narrow-cols:2/);
+  assert.match(html, /\.cg-grid\{grid-template-columns:repeat\(var\(--cg-narrow-cols,2\),minmax\(0,1fr\)\)\}/);
+  assert.match(html, /\.cg-open-badge\{max-width:100%;flex-shrink:0;min-width:0/);
+  assert.match(html, /@container cg-camera-grid \(max-width:280px\)\{\.cg-grid\{grid-template-columns:1fr\}\}/);
+});
+
+test('explicit single-column layout is respected in narrow dashboards',()=>{
+  const card=new Card();card.setConfig({layout:'1',cameras:[{name:'Porta'},{name:'Giardino'}]});
+  assert.match(card.shadowRoot.innerHTML, /--cg-cols:1;--cg-narrow-cols:1/);
 });

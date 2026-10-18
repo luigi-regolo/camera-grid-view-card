@@ -93,7 +93,7 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-head{margin:2px 4px 17px}.cg-eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:750;color:var(--cg-muted);margin-bottom:7px}.cg-title{font-size:25px;line-height:1.14;font-weight:780;letter-spacing:-.7px;overflow-wrap:anywhere}.cg-title b{color:var(--cg-accent);font-weight:800}
 .cg-grid-host{container:cg-camera-grid/inline-size;min-width:0;width:100%}
 .cg-grid{display:grid;grid-template-columns:repeat(var(--cg-cols,2),minmax(0,1fr));gap:12px}
-.cg-cell{border:1px solid var(--cg-border);background:var(--cg-surface);color:inherit;padding:7px 10px;height:82px;border-radius:16px;display:flex;flex-direction:column;gap:2px;justify-content:space-between;text-align:left;min-width:0;transition:border-color .16s,transform .16s}.cg-cell.cg-with-preview{height:auto;min-height:82px}
+.cg-cell{border:1px solid var(--cg-border);background:var(--cg-surface);color:inherit;padding:7px 10px;height:auto;min-height:82px;border-radius:16px;display:flex;flex-direction:column;gap:2px;justify-content:space-between;text-align:left;min-width:0;transition:border-color .16s,transform .16s}.cg-cell.cg-with-preview{height:auto;min-height:82px}
 .cg-cell:hover,.cg-cell:focus{border-color:var(--cg-accent)}.cg-cell:active{transform:scale(.99)}.cg-cell:focus-visible,.cg-btn:focus-visible,.cg-confirm-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}
 .cg-top{display:flex;align-items:center;gap:10px;min-width:0}.cg-icon-orb{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:50%;background:var(--cg-circle)}.cg-icon-orb ha-icon{color:var(--cg-fg);width:22px;height:22px;--mdc-icon-size:22px}
 .cg-info{flex:1;min-width:0}.cg-name{display:block;font-size:13px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cg-arrow{display:flex;color:var(--cg-muted)}.cg-arrow ha-icon{width:14px;height:14px;--mdc-icon-size:14px}
@@ -109,12 +109,16 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 /* Container-based adaptation: dashboard columns can be narrow even on wide screens.
    Keep the approved 2-column compact geometry whenever the host is wide enough. */
 @container cg-camera-grid (max-width:480px){
-  .cg-grid{grid-template-columns:1fr}
-  .cg-cell,.cg-cell.cg-with-preview{height:auto;min-height:82px;padding:10px 12px;gap:8px}
-  .cg-info .cg-meta{line-height:1.4}
-  .cg-open-badge{max-width:100%;flex-shrink:0}
+  .cg-grid{grid-template-columns:repeat(var(--cg-narrow-cols,2),minmax(0,1fr))}
+  .cg-cell,.cg-cell.cg-with-preview{height:auto;min-height:82px;padding:9px 8px;gap:7px}
+  .cg-top{gap:6px;min-width:0}
+  .cg-icon-orb{width:34px;height:34px}
+  .cg-icon-orb ha-icon{width:18px;height:18px;--mdc-icon-size:18px}
+  .cg-arrow ha-icon{width:12px;height:12px;--mdc-icon-size:12px}
+  .cg-info .cg-meta{line-height:1.35;overflow-wrap:break-word}
+  .cg-open-badge{max-width:100%;flex-shrink:0;min-width:0;padding:5px 7px;gap:4px;font-size:10px;white-space:normal;overflow-wrap:break-word}
 }
-@media(max-width:340px){.cg-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cg-cell{transition:none}.cg-cell:active{transform:none}}
+@container cg-camera-grid (max-width:280px){.cg-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cg-cell{transition:none}.cg-cell:active{transform:none}}
 `;
 class CameraGridViewCard extends HTMLElement {
   static getStubConfig(){return cgConfig();}
@@ -195,7 +199,7 @@ class CameraGridViewCard extends HTMLElement {
     const sig=this._signature();if(sig===this._lastSignature)return;this._lastSignature=sig;
     const cfg=this._config;
     const columns=cfg.layout==='auto'?2:cfg.layout==='1'?1:cfg.layout==='2'?2:cfg.layout==='4'?2:cfg.custom_columns;
-    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><ha-card><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div></div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div></ha-card>`;
+    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><ha-card><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div></div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div></ha-card>`;
     // Do not steal focus from action buttons on every state update.
   }
   _close(){this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
