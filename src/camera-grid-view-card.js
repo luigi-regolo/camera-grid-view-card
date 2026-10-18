@@ -1,10 +1,10 @@
 /**
- * Camera Gallery Card — Home Assistant dashboard card.
+ * Camera Grid View Card — Home Assistant dashboard card.
  * Copyright (c) 2026 luigi-regolo. SPDX-License-Identifier: GPL-3.0-only.
  * No telemetry, remote scripts, external assets, or credentials.
  */
-const CG_TAG = 'camera-gallery-card';
-const CG_EDITOR_TAG = 'camera-gallery-card-editor';
+const CG_TAG = 'camera-grid-view-card';
+const CG_EDITOR_TAG = 'camera-grid-view-card-editor';
 const CG_DOMAINS = Object.freeze({
   image_entity: ['image'], motion_entity: ['binary_sensor'],
   last_event_entity: ['sensor', 'input_datetime'],
@@ -13,7 +13,7 @@ const CG_DOMAINS = Object.freeze({
   audio_control_entity: ['switch', 'input_boolean'],
 });
 const CG_DEFAULTS = Object.freeze({
-  title: 'Telecamere', eyebrow: 'CAMERA GALLERY CARD', theme_mode: 'auto',
+  title: 'Telecamere', eyebrow: 'CAMERA GRID VIEW CARD', theme_mode: 'auto',
   layout: 'auto', custom_columns: 3, controls_enabled: false, cameras: [],
 });
 function cgText(value, max=100) { return String(value ?? '').trim().slice(0,max); }
@@ -31,7 +31,7 @@ function cgCamera(raw={}) {
 function cgConfig(raw={}) {
   const r=raw && typeof raw==='object' && !Array.isArray(raw)?raw:{};
   return {
-    type: 'custom:camera-gallery-card',
+    type: 'custom:camera-grid-view-card',
     title:cgText(r.title??CG_DEFAULTS.title,60),
     eyebrow:cgText(r.eyebrow??CG_DEFAULTS.eyebrow,60),
     theme_mode:['auto','light','dark'].includes(r.theme_mode)?r.theme_mode:'auto',
@@ -88,11 +88,11 @@ const CG_STYLE=`
 .cg-root{--cg-accent:#0a7156;--cg-muted:#56675c;--cg-surface:#f0f2ef;--cg-border:#e0e5df;--cg-bg:#fafbf9;--cg-fg:#18221c;--cg-shadow:0 16px 50px #0003;background:var(--cg-bg);color:var(--cg-fg);border-radius:22px;padding:20px;position:relative}
 .cg-root.cg-dark{--cg-accent:#0e795d;--cg-muted:#bbc5bd;--cg-surface:#191c1a;--cg-border:#2b302c;--cg-bg:#101211;--cg-fg:#f5f7f4}
 .cg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.cg-eyebrow{font-size:10px;letter-spacing:2.2px;font-weight:700;color:var(--cg-muted);text-transform:uppercase}.cg-title{font-size:25px;line-height:1.14;font-weight:780;letter-spacing:-.7px;margin-top:6px;overflow-wrap:anywhere}.cg-title b{color:var(--cg-accent);font-weight:800}
-.cg-grid{display:grid;grid-template-columns:repeat(var(--cg-cols,2),minmax(0,1fr));gap:12px}.cg-cell{background:var(--cg-surface);border:1px solid var(--cg-border);color:inherit;padding:14px;border-radius:16px;display:flex;flex-direction:column;gap:10px;text-align:left;min-width:0;transition:border-color .16s,transform .16s}.cg-cell:hover{border-color:var(--cg-accent)}.cg-cell:focus-visible,.cg-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}.cg-top{display:flex;align-items:center;gap:9px;min-width:0}.cg-top ha-icon{color:var(--cg-accent)}.cg-name{font-size:14px;font-weight:640;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}.cg-arrow{color:var(--cg-muted)}.cg-preview{width:100%;aspect-ratio:16/10;border-radius:11px;background:var(--cg-bg);object-fit:cover;display:block}.cg-placeholder{border:1px dashed var(--cg-border);border-radius:11px;min-height:70px;display:flex;align-items:center;gap:9px;justify-content:center;color:var(--cg-muted);font-size:12px}.cg-meta{font-size:12px;color:var(--cg-muted);line-height:1.4}.cg-empty{padding:12px;color:var(--cg-muted);font-size:13px}
+.cg-grid{display:grid;grid-template-columns:repeat(var(--cg-cols,2),minmax(0,1fr));gap:12px}.cg-cell{background:var(--cg-surface);border:1px solid var(--cg-border);color:inherit;padding:14px;border-radius:16px;display:flex;flex-direction:column;gap:10px;text-align:left;min-width:0;transition:border-color .16s,transform .16s}.cg-cell:hover{border-color:var(--cg-accent)}.cg-cell:focus-visible,.cg-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}.cg-top{display:flex;align-items:center;gap:9px;min-width:0}.cg-top ha-icon{color:var(--cg-accent)}.cg-name{font-size:14px;font-weight:640;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}.cg-arrow{color:var(--cg-muted)}.cg-preview{width:100%;aspect-ratio:16/10;border-radius:11px;background:var(--cg-bg);object-fit:cover;display:block}.cg-placeholder{border:1px dashed var(--cg-border);border-radius:11px;min-height:70px;display:flex;align-items:center;gap:9px;justify-content:center;color:var(--cg-muted);font-size:12px}.cg-open-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--cg-accent);color:#fff;font-size:11px;font-weight:700;line-height:1.2;letter-spacing:.05px}.cg-open-badge ha-icon{--mdc-icon-size:14px;width:14px;height:14px;color:#fff}.cg-meta{font-size:12px;color:var(--cg-muted);line-height:1.4}.cg-empty{padding:12px;color:var(--cg-muted);font-size:13px}
 .cg-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px}.cg-dialog{width:min(460px,100%);max-height:min(90vh,850px);overflow:auto;background:var(--cg-bg);border:1px solid var(--cg-border);border-radius:22px;padding:20px;box-shadow:var(--cg-shadow)}.cg-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:17px;font-size:19px}.cg-btn{border:1px solid var(--cg-border);border-radius:12px;padding:10px 12px;background:var(--cg-surface);color:var(--cg-fg);display:inline-flex;align-items:center;gap:8px}.cg-icon-btn{padding:6px;border:0;background:transparent;color:var(--cg-muted)}.cg-snapshot-title{font-size:12px;font-weight:650;color:var(--cg-muted);margin-bottom:8px}.cg-dialog .cg-preview{aspect-ratio:4/3}.cg-event{margin-top:13px;padding:12px;border-radius:13px;background:var(--cg-surface);display:flex;gap:11px;align-items:center}.cg-event ha-icon{color:var(--cg-accent);flex:none}.cg-event strong{font-size:13px;font-weight:650}.cg-event .cg-meta{margin-top:3px}.cg-split{justify-content:space-between}.cg-action{margin-top:13px;width:100%;justify-content:center}.cg-error{margin-top:12px;color:#c74f4f;font-size:12px}.cg-badge{font-size:12px;color:var(--cg-muted)}
 @media(max-width:580px){.cg-root{padding:15px}.cg-grid{grid-template-columns:repeat(min(var(--cg-cols,2),2),minmax(0,1fr))}.cg-cell{padding:10px}.cg-name{font-size:12px}.cg-title{font-size:20px}}@media(max-width:340px){.cg-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cg-cell{transition:none}}
 `;
-class CameraGalleryCard extends HTMLElement {
+class CameraGridViewCard extends HTMLElement {
   static getStubConfig(){return cgConfig();}
   static getConfigElement(){return document.createElement(CG_EDITOR_TAG);}
   constructor(){
@@ -123,7 +123,7 @@ class CameraGalleryCard extends HTMLElement {
     const image=c.show_preview?cgImageUrl(this._state(c.image_entity)):'';
     const visual=c.show_preview?(image?`<img class="cg-preview" alt="Ultima immagine: ${cgEsc(title)}" src="${cgEsc(image)}" loading="lazy"/>`:'<div class="cg-placeholder">'+cgIcon('image-off-outline')+'Immagine non disponibile</div>'):'';
     const last=cgTime(this._lastEvent(c));
-    return `<button type="button" class="cg-cell" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}"><div class="cg-top">${cgIcon('cctv')}<span class="cg-name">${cgEsc(title)}</span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<div class="cg-meta">${last?'Ultimo movimento · '+cgEsc(last.relative):'Ultimo movimento · Non disponibile'}</div></button>`;
+    return `<button type="button" class="cg-cell" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}"><div class="cg-top">${cgIcon('cctv')}<span class="cg-name">${cgEsc(title)}</span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<div class="cg-meta">${last?'Ultimo movimento · '+cgEsc(last.relative):'Ultimo movimento · Non disponibile'}</div><span class="cg-open-badge">${cgIcon('camera-outline')} Apri telecamera</span></button>`;
   }
   _audio(c){
     const entity=this._state(c.audio_state_entity||c.audio_control_entity);
@@ -195,58 +195,142 @@ class CameraGalleryCard extends HTMLElement {
   }
 }
 const CG_EDITOR_CSS=`
-:host{display:block;color:var(--primary-text-color);font-family:var(--ha-font-family-body,Roboto,sans-serif)}*{box-sizing:border-box}
-.cg-editor{display:grid;gap:14px}.cg-group{padding:14px;border:1px solid var(--divider-color,#ddd);border-radius:14px;background:var(--card-background-color,transparent)}.cg-heading{font-size:15px;font-weight:700;margin-bottom:12px}.cg-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.cg-field{min-width:0}.cg-field label{display:block;font-size:12px;margin-bottom:5px;color:var(--secondary-text-color)}.cg-input{width:100%;min-width:0;padding:10px;border:1px solid var(--divider-color,#ccc);border-radius:8px;background:var(--card-background-color,#fff);color:var(--primary-text-color,#222);font-size:14px}.cg-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0}.cg-row label{font-size:13px}.cg-button{padding:10px 12px;border:1px solid var(--divider-color,#bbb);background:var(--secondary-background-color,#eee);color:var(--primary-text-color,#222);border-radius:9px;cursor:pointer}.cg-listhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.cg-note{font-size:12px;color:var(--secondary-text-color);line-height:1.5}.cg-camera{padding:12px;border:1px solid var(--divider-color,#ddd);border-radius:12px;margin-top:10px}.cg-camera-title{font-size:13px;font-weight:650}.cg-buttons{display:flex;gap:6px}.cg-buttons button{padding:5px 8px}.cg-selector{width:100%}@media(max-width:500px){.cg-fields{grid-template-columns:1fr}}
+:host{display:block;color:var(--primary-text-color,#18221c);font-family:var(--ha-font-family-body,Roboto,Arial,sans-serif);font-size:var(--ha-font-size-m,14px)}
+*,*:before,*:after{box-sizing:border-box}
+.cg-editor{display:block}
+.cg-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:14px;border-bottom:1px solid var(--divider-color,#dfe5df)}
+.cg-tab{border:0;background:none;color:var(--secondary-text-color,#536359);border-radius:13px;padding:10px 13px;white-space:nowrap;font:inherit;cursor:pointer}
+.cg-tab.active{color:var(--primary-text-color,#17231c);background:var(--secondary-background-color,#f0f2ef);font-weight:650}
+.cg-heading{font-size:21px;font-weight:500;margin:25px 0 9px}
+.cg-desc{color:var(--secondary-text-color,#55665a);font-size:13px;line-height:1.5;margin-bottom:24px}
+.cg-field{display:block;margin:20px 0}
+.cg-label{font-size:14px;margin-bottom:10px}
+.cg-input{display:block;width:100%;background:var(--secondary-background-color,#f0f2ef);color:var(--primary-text-color,#18221c);border:0;border-bottom:1px solid var(--divider-color,#a5afa5);padding:14px 13px;min-height:50px;border-radius:11px 11px 0 0;font:inherit}
+.cg-editor ha-selector{display:block;width:100%;--mdc-theme-primary:var(--primary-color,#0b7457)}
+.cg-fallback{display:none}.cg-no-native .cg-fallback{display:block}.cg-no-native ha-selector{display:none}
+.cg-row{border-bottom:1px solid var(--divider-color,#e3e7e3);padding:13px 0;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.cg-row label{flex:1}.cg-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary-color,#0c7157)}
+.cg-muted{font-size:12px;line-height:1.5;color:var(--secondary-text-color,#5e6c62)}
+.cg-action{background:var(--secondary-background-color,#eff2ee);border:1px solid var(--divider-color,#dbe2db);color:var(--primary-text-color,#18221c);padding:10px 14px;border-radius:14px;font:inherit;cursor:pointer}
+.cg-action:disabled{opacity:.45;cursor:not-allowed}
+.cg-tiny{font-size:11px;color:var(--secondary-text-color,#55665a);margin:9px 0}
+.cg-input:focus-visible,.cg-action:focus-visible,.cg-tab:focus-visible,.cg-clear:focus-visible{outline:2px solid var(--primary-color,#0b7457);outline-offset:2px}
+.cg-more{margin:19px 0 10px;border-bottom:1px solid var(--divider-color,#dfe5df);padding:0 0 11px}
+.cg-more summary{cursor:pointer;padding:13px 4px;color:var(--secondary-text-color,#56665d);font-size:13px;list-style:none}
+.cg-more summary:before{content:"▸";font-size:10px;margin-right:10px}
+.cg-more[open] summary:before{content:"▾"}.cg-more summary::-webkit-details-marker{display:none}
+.cg-more-body{padding:2px 0 8px}
+.cg-selector-line{display:flex;align-items:center;gap:8px;min-width:0}
+.cg-selector-grow{flex:1;min-width:0}
+.cg-clear{display:flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;background:var(--secondary-background-color,#eef1ef);border:1px solid var(--divider-color,#dfe5df);border-radius:50%;cursor:pointer;color:var(--secondary-text-color,#57655c);padding:0}
+.cg-clear ha-icon{width:18px;height:18px;--mdc-icon-size:18px}
+.cg-camera-group{padding-bottom:20px;border-bottom:1px solid var(--divider-color,#e0e5df);margin-bottom:20px}
+.cg-camera-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}
+.cg-camera-head strong{font-size:15px;font-weight:600}
+.cg-controls{display:flex;gap:6px;flex:none}
+.cg-controls .cg-action{padding:5px 9px;border-radius:10px}
+.cg-add{display:block;margin:12px 0 25px}
+.cg-notice{margin-top:10px;color:var(--error-color,#bd4b42);font-size:12px}
 `;
-class CameraGalleryCardEditor extends HTMLElement {
+class CameraGridViewCardEditor extends HTMLElement {
   constructor(){
     super();this.attachShadow({mode:'open'});this._config=cgConfig();this._hass=null;this._nativeTried=false;
+    this._tab='telecamere';this._details={};
     this.shadowRoot.addEventListener('click',e=>this._click(e));
     this.shadowRoot.addEventListener('change',e=>this._change(e));
   }
   set hass(hass){this._hass=hass;this.shadowRoot.querySelectorAll('ha-selector').forEach(el=>el.hass=hass);}
-  setConfig(raw){const config=cgConfig(raw);if(JSON.stringify(config)===JSON.stringify(this._config)&&this.shadowRoot.querySelector('.cg-editor'))return;this._config=config;this._render();}
+  setConfig(raw){
+    const config=cgConfig(raw);
+    if(JSON.stringify(config)===JSON.stringify(this._config)&&this.shadowRoot.querySelector('.cg-editor'))return;
+    this._config=config;this._render();
+  }
   connectedCallback(){this._render();this._ensureNative();}
   async _ensureNative(){
     if(this._nativeTried)return;this._nativeTried=true;
-    if(!customElements.get('ha-selector')){try{const helper=await window.loadCardHelpers?.();await helper?.importSelector?.();}catch { /* fallback to entity ID input */ }}
+    if(!customElements.get('ha-selector')){
+      try{const helper=await window.loadCardHelpers?.();await helper?.importSelector?.();}
+      catch {/* Native selector is optional; use entity ID input instead. */}
+    }
     this._render();
   }
   _emit(){this.dispatchEvent(new CustomEvent('config-changed',{detail:{config:this._config},bubbles:true,composed:true}));}
   _update(patch){this._config=cgConfig({...this._config,...patch});this._emit();this._render();}
   _updateCamera(index,patch){const cams=this._config.cameras.map((c,i)=>i===index?{...c,...patch}:c);this._update({cameras:cams});}
-  _field(label,html,help=''){return `<div class="cg-field"><label>${cgEsc(label)}</label>${html}${help?`<div class="cg-note">${cgEsc(help)}</div>`:''}</div>`;}
+  _field(label,inner,help=''){return `<div class="cg-field"><div class="cg-label">${cgEsc(label)}</div>${inner}${help?`<div class="cg-tiny">${cgEsc(help)}</div>`:''}</div>`;}
   _input(scope,key,label,value){return this._field(label,`<input class="cg-input" type="text" maxlength="100" data-scope="${scope}" data-key="${key}" value="${cgEsc(value)}"/>`);}
-  _entityField(index,key,label){return this._field(label,`<div class="cg-selector" data-entity-slot="${index}:${key}"><input class="cg-input" type="text" placeholder="${cgEsc(CG_DOMAINS[key][0])}.*" value="${cgEsc(this._config.cameras[index][key])}" data-scope="${index}" data-key="${key}"/></div>`);}
+  _entityField(index,key,label,help=''){
+    const value=this._config.cameras[index][key];
+    return this._field(label,`<div class="cg-selector-line"><div class="cg-selector-grow"><div data-entity-slot="${index}:${key}"></div><div class="cg-fallback"><input class="cg-input" type="text" placeholder="${cgEsc(CG_DOMAINS[key][0])}.*" value="${cgEsc(value)}" data-scope="${index}" data-key="${key}"/></div></div>${value?`<button type="button" class="cg-clear" data-clear="${index}:${key}" title="Rimuovi ${cgEsc(label)}" aria-label="Rimuovi ${cgEsc(label)}">${cgIcon('close')}</button>`:''}</div>`,help);
+  }
   _check(index,key,label,help=''){
     const c=index==='global'?this._config:this._config.cameras[index];
-    return `<div class="cg-row"><div><label>${cgEsc(label)}</label>${help?`<div class="cg-note">${cgEsc(help)}</div>`:''}</div><input type="checkbox" data-scope="${index}" data-key="${key}" ${c[key]?'checked':''}/></div>`;
+    return `<div class="cg-row"><label for="cg-${index}-${key}">${cgEsc(label)}${help?`<div class="cg-muted">${cgEsc(help)}</div>`:''}</label><input id="cg-${index}-${key}" type="checkbox" data-scope="${index}" data-key="${key}" ${c[key]?'checked':''}/></div>`;
+  }
+  _more(key,body){return `<details class="cg-more" data-details="${key}" ${this._details[key]?'open':''}><summary>Altre opzioni</summary><div class="cg-more-body">${body}</div></details>`;}
+  _camera(index,cam){
+    const extra=this._entityField(index,'motion_entity','Entità movimento (facoltativa)')+
+      this._entityField(index,'last_event_entity','Data ultimo movimento (facoltativa)')+
+      this._entityField(index,'audio_state_entity','Stato audio (facoltativo)')+
+      this._entityField(index,'audio_control_entity','Controllo audio (facoltativo)','Richiede switch.* o input_boolean.* comandabile.')+
+      this._check(index,'audio_control_enabled','Consenti controllo audio per questa telecamera','Richiede anche Abilita i comandi reali in Avanzate.')+
+      this._entityField(index,'battery_entity','Batteria (facoltativa)');
+    return `<section class="cg-camera-group"><div class="cg-camera-head"><strong>${index+1}. ${cgEsc(cam.name||`Telecamera ${index+1}`)}</strong><div class="cg-controls"><button type="button" class="cg-action" data-move="${index}:-1" aria-label="Sposta su" ${index===0?'disabled':''}>↑</button><button type="button" class="cg-action" data-move="${index}:1" aria-label="Sposta giù" ${index===this._config.cameras.length-1?'disabled':''}>↓</button><button type="button" class="cg-clear" data-delete="${index}" aria-label="Rimuovi telecamera">${cgIcon('close')}</button></div></div>`+
+      this._entityField(index,'image_entity','Ultima immagine rilevata (image.*)')+
+      this._input(index,'name','Nome visualizzato',cam.name)+
+      this._check(index,'show_preview','Mostra ultima immagine nella dashboard','Disattivata di default per privacy. Il popup resta disponibile.')+
+      this._more(`camera-${index}`,extra)+'</section>';
   }
   _render(){
     if(!this.isConnected)return;
+    this.shadowRoot.querySelectorAll('details[data-details]').forEach(el=>{this._details[el.dataset.details]=el.open;});
     const c=this._config;
-    const layout=`<select class="cg-input" data-scope="global" data-key="layout">${[['auto','Automatico'],['1','1 telecamera per riga'],['2','2 telecamere per riga'],['4','4 telecamere (griglia 2×2)'],['custom','Personalizzato']].map(([value,label])=>`<option value="${value}" ${c.layout===value?'selected':''}>${label}</option>`).join('')}</select>`;
-    const themes=`<select class="cg-input" data-scope="global" data-key="theme_mode">${['auto','light','dark'].map(s=>`<option value="${s}" ${c.theme_mode===s?'selected':''}>${s==='auto'?'Auto':s==='light'?'Light':'Dark'}</option>`).join('')}</select>`;
-    const entries=c.cameras.map((cam,i)=>`<div class="cg-camera"><div class="cg-listhead"><span class="cg-camera-title">${cgEsc(cam.name||`Telecamera ${i+1}`)}</span><div class="cg-buttons"><button type="button" class="cg-button" data-move="${i}:-1" aria-label="Sposta su" ${i===0?'disabled':''}>↑</button><button type="button" class="cg-button" data-move="${i}:1" aria-label="Sposta giù" ${i===c.cameras.length-1?'disabled':''}>↓</button><button type="button" class="cg-button" data-delete="${i}" aria-label="Rimuovi telecamera">✕</button></div></div><div class="cg-fields">${this._input(i,'name','Nome visualizzato',cam.name)}${this._entityField(i,'image_entity','Ultima immagine (image.*)')}${this._entityField(i,'motion_entity','Movimento (binary_sensor.*)')}${this._entityField(i,'last_event_entity','Data ultimo evento (opzionale)')}${this._entityField(i,'audio_state_entity','Stato audio (opzionale)')}${this._entityField(i,'audio_control_entity','Controllo audio (switch/input_boolean)')}${this._entityField(i,'battery_entity','Batteria (opzionale)')}</div>${this._check(i,'show_preview','Mostra anteprima nella dashboard','Disattivata per impostazione predefinita; il popup continua a mostrare l’immagine.')}${this._check(i,'audio_control_enabled','Consenti controllo audio per questa telecamera','Funziona solo con una entità comandabile e con comandi reali abilitati.')}</div>`).join('');
-    this.shadowRoot.innerHTML=`<style>${CG_EDITOR_CSS}</style><div class="cg-editor"><section class="cg-group"><div class="cg-heading">Aspetto e disposizione</div><div class="cg-fields">${this._input('global','title','Titolo',c.title)}${this._input('global','eyebrow','Sottotitolo',c.eyebrow)}${this._field('Tema',themes)}${this._field('Layout',layout)}${c.layout==='custom'?this._field('Numero colonne (1–12)',`<input class="cg-input" type="number" min="1" max="12" data-scope="global" data-key="custom_columns" value="${c.custom_columns}"/>`):''}</div></section><section class="cg-group"><div class="cg-listhead"><div class="cg-heading">Telecamere (${c.cameras.length})</div><button class="cg-button" type="button" data-add="1">+ Aggiungi</button></div><div class="cg-note">Nessun limite fisso al numero di telecamere. L’anteprima è disattivata individualmente per privacy.</div>${entries}</section><section class="cg-group"><div class="cg-heading">Avanzate</div>${this._check('global','controls_enabled','Abilita comandi reali','Disabilitati per impostazione predefinita. Richiedono permessi Home Assistant.')}</section></div>`;
+    // Home Assistant supplies top-level Configurazione, Visibilità and Layout tabs.
+    const tabs=[['telecamere','Telecamere'],['aspetto','Aspetto'],['avanzate','Avanzate']];
+    let body='';
+    if(this._tab==='telecamere'){
+      body='<div class="cg-heading">Configurazione telecamere</div><div class="cg-desc">Configura le telecamere e scegli per ciascuna se mostrare l’ultima immagine nella dashboard.</div>'+
+        c.cameras.map((cam,i)=>this._camera(i,cam)).join('')+
+        '<button type="button" class="cg-action cg-add" data-add="1">+ Aggiungi telecamera</button>'+
+        '<div class="cg-muted">È possibile aggiungere più telecamere, senza un limite fisso. Ogni telecamera apre il proprio popup.</div>';
+    }
+    if(this._tab==='aspetto'){
+      const options=[['auto','Automatico'],['1','1 telecamera per riga'],['2','2 telecamere per riga'],['4','4 telecamere (griglia 2×2)'],['custom','Personalizzato']];
+      const layout=`<select class="cg-input" data-scope="global" data-key="layout">${options.map(([val,label])=>`<option value="${val}" ${c.layout===val?'selected':''}>${label}</option>`).join('')}</select>`;
+      const themes=`<select class="cg-input" data-scope="global" data-key="theme_mode">${[['auto','Auto (Home Assistant)'],['light','Light Edera'],['dark','Dark Edera']].map(([val,label])=>`<option value="${val}" ${c.theme_mode===val?'selected':''}>${label}</option>`).join('')}</select>`;
+      body='<div class="cg-heading">Aspetto Edera</div><div class="cg-desc">Tema, tipografia e disposizione delle telecamere, coerenti con Security Panel Card.</div>'+
+        this._input('global','eyebrow','Intestazione superiore',c.eyebrow)+this._input('global','title','Titolo',c.title)+
+        this._field('Tema',themes)+this._field('Layout',layout)+
+        (c.layout==='custom'?this._field('Numero colonne (1–12)',`<input class="cg-input" type="number" min="1" max="12" data-scope="global" data-key="custom_columns" value="${c.custom_columns}"/>`):'');
+    }
+    if(this._tab==='avanzate'){
+      body='<div class="cg-heading">Avanzate</div><div class="cg-desc">La card è inizialmente in sola lettura. Abilita i comandi soltanto dopo aver verificato le entità configurate.</div>'+
+        this._check('global','controls_enabled','Abilita i comandi reali','Permette il controllo audio esclusivamente per le telecamere autorizzate. I permessi Home Assistant restano necessari.')+
+        '<div class="cg-muted" style="margin-top:18px">Le anteprime nascoste impediscono la visualizzazione delle immagini nella dashboard, ma non sostituiscono le autorizzazioni di Home Assistant.</div>';
+    }
+    this.shadowRoot.innerHTML=`<style>${CG_EDITOR_CSS}</style><div class="cg-editor"><div class="cg-tabs">${tabs.map(([id,label])=>`<button type="button" class="cg-tab ${this._tab===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}</div>${body}</div>`;
+    this.shadowRoot.querySelector('.cg-editor').classList.toggle('cg-no-native',!customElements.get('ha-selector'));
     this._mountSelectors();
   }
   _mountSelectors(){
-    if(typeof customElements==='undefined'||!customElements.get('ha-selector'))return;
+    if(!customElements.get('ha-selector'))return;
     this.shadowRoot.querySelectorAll('[data-entity-slot]').forEach(slot=>{
       const [idx,key]=slot.dataset.entitySlot.split(':');const index=Number(idx);
-      const selector=document.createElement('ha-selector');selector.className='cg-selector';selector.hass=this._hass;
+      const selector=document.createElement('ha-selector');selector.hass=this._hass;
       const domains=CG_DOMAINS[key];selector.selector={entity:{domain:domains.length===1?domains[0]:domains}};
-      selector.value=this._config.cameras[index][key]||'';
+      selector.value=this._config.cameras[index]?.[key]||'';
+      selector.setAttribute('aria-label',key);
       selector.addEventListener('value-changed',e=>{
-        // Do not allow a delayed event from a removed/reordered editor row.
-        if(!selector.isConnected)return;
-        const v=cgEntity(e.detail?.value,CG_DOMAINS[key]);this._updateCamera(index,{[key]:v});
+        e.stopPropagation();
+        if(!selector.isConnected||!e.detail||!Object.prototype.hasOwnProperty.call(e.detail,'value'))return;
+        const value=cgEntity(e.detail.value,domains);this._updateCamera(index,{[key]:value});
       });
-      slot.replaceChildren(selector);
+      slot.appendChild(selector);
     });
   }
   _click(event){
+    const tab=event.target.closest('[data-tab]');if(tab){this._tab=tab.dataset.tab;this._render();return;}
+    const clear=event.target.closest('[data-clear]');if(clear){const [i,key]=clear.dataset.clear.split(':');this._updateCamera(Number(i),{[key]:''});return;}
     const add=event.target.closest('[data-add]');if(add){this._update({cameras:[...this._config.cameras,cgCamera()]});return;}
     const del=event.target.closest('[data-delete]');if(del){const index=Number(del.dataset.delete);this._update({cameras:this._config.cameras.filter((_,i)=>i!==index)});return;}
     const move=event.target.closest('[data-move]');if(move){const [idx,d]=move.dataset.move.split(':').map(Number);const cams=[...this._config.cameras];const next=idx+d;if(next<0||next>=cams.length)return;[cams[idx],cams[next]]=[cams[next],cams[idx]];this._update({cameras:cams});}
@@ -261,11 +345,11 @@ class CameraGalleryCardEditor extends HTMLElement {
   }
 }
 if(typeof customElements!=='undefined'){
-  if(!customElements.get(CG_TAG))customElements.define(CG_TAG,CameraGalleryCard);
-  if(!customElements.get(CG_EDITOR_TAG))customElements.define(CG_EDITOR_TAG,CameraGalleryCardEditor);
+  if(!customElements.get(CG_TAG))customElements.define(CG_TAG,CameraGridViewCard);
+  if(!customElements.get(CG_EDITOR_TAG))customElements.define(CG_EDITOR_TAG,CameraGridViewCardEditor);
 }
 if(typeof window!=='undefined'){
   window.customCards=window.customCards||[];
-  if(!window.customCards.some(c=>c.type===CG_TAG))window.customCards.push({type:CG_TAG,name:'Camera Gallery Card',description:'Galleria Edera con popup snapshot, audio e anteprime privacy-first.',preview:true});
+  if(!window.customCards.some(c=>c.type===CG_TAG))window.customCards.push({type:CG_TAG,name:'Camera Grid View Card',description:'Galleria Edera con popup snapshot, audio e anteprime privacy-first.',preview:true});
 }
 export {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState};

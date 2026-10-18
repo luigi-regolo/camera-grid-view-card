@@ -1,16 +1,17 @@
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // Home Assistant supplies HTMLElement and customElements in the browser; mock before import.
 class StubElement {
   constructor(){this.shadowRoot=null;this.isConnected=true;}
-  attachShadow(){this.shadowRoot={innerHTML:'',addEventListener(){},querySelector(){return {focus(){}}}};return this.shadowRoot;}
+  attachShadow(){this.shadowRoot={innerHTML:'',addEventListener(){},querySelectorAll(){return []},querySelector(){return {focus(){},classList:{toggle(){}}}}};return this.shadowRoot;}
 }
 globalThis.HTMLElement=StubElement;
 const definitions=new Map();
 globalThis.customElements={get:n=>definitions.get(n),define:(n,c)=>definitions.set(n,c)};
 globalThis.window={customCards:[]};
-const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState}=await import('../src/camera-gallery-card.js');
-const Card=definitions.get('camera-gallery-card');
+const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState}=await import('../src/camera-grid-view-card.js');
+const Card=definitions.get('camera-grid-view-card');
 
 test('defaults protect privacy and disallow real commands',()=>{
   const c=cgConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
@@ -84,4 +85,40 @@ test('Edera title uses attached green punctuation, not a detached decorative dot
   const card=new Card();card.setConfig({title:'Telecamere'});
   assert.match(card.shadowRoot.innerHTML, /class="cg-title">Telecamere<b>\.<\/b>/);
   assert.doesNotMatch(card.shadowRoot.innerHTML, /cg-dot/);
+});
+
+test('dashboard tile contains the green Apri telecamera badge',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
+  assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge"[^>]*>[\s\S]*Apri telecamera/);
+  assert.match(card.shadowRoot.innerHTML,/\.cg-open-badge\{[^}]*background:var\(--cg-accent\)/);
+});
+
+test('editor has Security Panel style tabs and vertical fields',()=>{
+  const source=readFileSync(new URL('../src/camera-grid-view-card.js',import.meta.url),'utf8');
+  assert.match(source,/class="cg-tabs"/);
+  assert.match(source,/\['telecamere','Telecamere'\],\['aspetto','Aspetto'\],\['avanzate','Avanzate'\]/);
+  assert.match(source,/class="cg-more"/);
+  assert.match(source,/Altre opzioni/);
+  assert.match(source,/\.cg-field\{display:block;margin:20px 0\}/);
+  assert.doesNotMatch(source,/\.cg-fields\{display:grid;grid-template-columns:1fr 1fr/);
+  assert.doesNotMatch(source,/Aspetto e disposizione/);
+});
+
+
+test('real editor renders one-column Security Panel sections and existing camera config',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');
+  const editor=new Editor();
+  editor.setConfig({cameras:[{name:'Spioncino',image_entity:'image.spioncino',show_preview:true,motion_entity:'binary_sensor.spioncino'}]});
+  assert.match(editor.shadowRoot.innerHTML,/Configurazione telecamere/);
+  assert.match(editor.shadowRoot.innerHTML,/class="cg-tabs"/);
+  assert.match(editor.shadowRoot.innerHTML,/class="cg-more"/);
+  assert.match(editor.shadowRoot.innerHTML,/Ultima immagine rilevata/);
+  assert.match(editor.shadowRoot.innerHTML,/Rimuovi telecamera/);
+  assert.match(editor.shadowRoot.innerHTML,/checked/);
+  editor._tab='aspetto';editor._render();
+  assert.match(editor.shadowRoot.innerHTML,/Aspetto Edera/);
+  assert.match(editor.shadowRoot.innerHTML,/CAMERA GRID VIEW CARD/);
+  assert.doesNotMatch(editor.shadowRoot.innerHTML,/CAMERA GALLERY CARD/);
+  editor._tab='avanzate';editor._render();
+  assert.match(editor.shadowRoot.innerHTML,/Abilita i comandi reali/);
 });

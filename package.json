@@ -1,10 +1,10 @@
 {
-  "name": "camera-gallery-card",
+  "name": "camera-grid-view-card",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check src/camera-gallery-card.js && node --check dist/camera-gallery-card.js",
+    "check": "node --check src/camera-grid-view-card.js && node --check dist/camera-grid-view-card.js",
     "test": "node --test tests/*.test.mjs"
   },
   "engines": {

@@ -14,4 +14,4 @@ jobs:
           node-version: '22'
       - run: npm run check
       - run: npm test
-      - run: cmp src/camera-gallery-card.js dist/camera-gallery-card.js
+      - run: cmp src/camera-grid-view-card.js dist/camera-grid-view-card.js
