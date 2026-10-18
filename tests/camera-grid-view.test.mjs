@@ -122,3 +122,91 @@ test('real editor renders one-column Security Panel sections and existing camera
   editor._tab='avanzate';editor._render();
   assert.match(editor.shadowRoot.innerHTML,/Abilita i comandi reali/);
 });
+
+test('dashboard matches Security Panel typography and circular device icons',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Spioncino'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html, /class="cg-icon-orb"/);
+  assert.match(html, /\.cg-icon-orb\{[^}]*width:43px;height:43px;border-radius:50%/);
+  assert.match(html, /\.cg-name\{[^}]*font-size:13px;font-weight:600/);
+  assert.match(html, /\.cg-head\{margin:2px 4px 17px/);
+});
+
+test('image details in popup use Security Panel green full-width action',()=>{
+  const card=new Card();card.setConfig({cameras:[{image_entity:'image.porta'}]});
+  card._opened=0;card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML, /class="cg-wide" data-more="image.porta"/);
+  assert.match(card.shadowRoot.innerHTML, /\.cg-wide\{[^}]*background:var\(--cg-accent\)/);
+});
+
+test('recording control is per-camera, off by default, and limited to commandable domains',()=>{
+  const cfg=cgConfig({cameras:[{recording_state_entity:'binary_sensor.rec',recording_control_entity:'switch.record',recording_control_enabled:true},{recording_state_entity:'sensor.recording'}]});
+  assert.equal(cfg.cameras[0].recording_control_entity,'switch.record');
+  assert.equal(cfg.cameras[1].recording_control_enabled,false);
+  assert.equal(cgConfig({cameras:[{recording_control_entity:'binary_sensor.record'}]}).cameras[0].recording_control_entity,'');
+});
+
+test('recording command requires global and individual authorizations',async()=>{
+  const actions=[];const card=new Card();card.setConfig({controls_enabled:true,cameras:[{recording_control_entity:'switch.rec',recording_control_enabled:false}]});
+  card.hass={states:{'switch.rec':{state:'off'}},callService:async(...args)=>actions.push(args)};
+  await card._toggleRecording(0);assert.equal(actions.length,0);
+  card.setConfig({controls_enabled:true,cameras:[{recording_control_entity:'switch.rec',recording_control_enabled:true}]});
+  await card._toggleRecording(0);
+  assert.deepEqual(actions,[['switch','turn_on',{entity_id:'switch.rec'}]]);
+});
+
+test('UI requires explicit confirmation for audio and recording',async()=>{
+  const actions=[];const card=new Card();card.setConfig({controls_enabled:true,cameras:[{name:'Ingresso',audio_control_entity:'switch.audio',audio_control_enabled:true,recording_control_entity:'switch.rec',recording_control_enabled:true}]});
+  card.hass={states:{'switch.audio':{state:'on'},'switch.rec':{state:'off'}},callService:async(...args)=>actions.push(args)};
+  card._opened=0;card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML, /data-request="audio:0"/);
+  assert.match(card.shadowRoot.innerHTML, /data-request="recording:0"/);
+  card._requestControl('recording',0);
+  assert.equal(actions.length,0);
+  assert.match(card.shadowRoot.innerHTML,/Vuoi attivare registrazione/);
+  const confirm=card._confirmation;
+  await card._performControl(confirm.kind,confirm.index,confirm.expected);
+  assert.deepEqual(actions,[['switch','turn_on',{entity_id:'switch.rec'}]]);
+});
+
+test('stale confirmation does not toggle wrong state',async()=>{
+  const actions=[];const card=new Card();card.setConfig({controls_enabled:true,cameras:[{audio_control_entity:'switch.audio',audio_control_enabled:true}]});
+  const entity={state:'on'};
+  card.hass={states:{'switch.audio':entity},callService:async(...args)=>actions.push(args)};
+  card._opened=0;card._requestControl('audio',0);
+  assert.equal(card._confirmation?.expected,true);
+  entity.state='off';
+  await card._performControl('audio',0,true);
+  assert.equal(actions.length,0);
+  assert.match(card.shadowRoot.innerHTML,/Stato modificato nel frattempo/);
+});
+
+test('editor displays only the selected camera to match Security Panel layout',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');const editor=new Editor();
+  editor.setConfig({cameras:[{name:'Porta'},{name:'Giardino'}]});
+  assert.match(editor.shadowRoot.innerHTML,/data-select-camera="0"/);
+  assert.match(editor.shadowRoot.innerHTML,/data-select-camera="1"/);
+  assert.equal((editor.shadowRoot.innerHTML.match(/class="cg-camera-head"/g)||[]).length,1);
+  editor._selectedCamera=1;editor._render();
+  assert.match(editor.shadowRoot.innerHTML, /class="cg-camera-chip active" data-select-camera="1"/);
+  assert.match(editor.shadowRoot.innerHTML, /Controllo registrazione \(facoltativo\)/);
+});
+
+test('compact dashboard dimensions and focus border remain as approved',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Spioncino'},{name:'Giardino'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/\.cg-grid\{[^}]*gap:12px\}/);
+  assert.match(html,/\.cg-cell\{[^}]*height:82px;[^}]*border-radius:16px/);
+  assert.match(html,/\.cg-cell:hover,\.cg-cell:focus\{border-color:var\(--cg-accent\)\}/);
+  assert.match(html,/class="cg-icon-orb"/);
+});
+
+test('popup close is circular and image action is fully green',()=>{
+  const card=new Card();card.setConfig({cameras:[{image_entity:'image.ingresso'}]});
+  card._opened=0;card._lastSignature='';card._paint();
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/\.cg-icon-btn\{[^}]*width:36px;height:36px;[^}]*border-radius:50%/);
+  assert.match(html,/class="cg-icon-btn"[^>]*data-close="1"/);
+  assert.match(html,/class="cg-wide" data-more="image\.ingresso"[^>]*>[^<]*<ha-icon[^>]*>[^<]*<\/ha-icon>Apri dettagli immagine<\/button>/);
+  assert.match(html,/\.cg-wide\{[^}]*width:100%;border:0;[^}]*background:var\(--cg-accent\);color:white/);
+});
