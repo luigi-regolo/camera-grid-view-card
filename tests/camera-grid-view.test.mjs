@@ -87,9 +87,9 @@ test('Edera title uses attached green punctuation, not a detached decorative dot
   assert.doesNotMatch(card.shadowRoot.innerHTML, /cg-dot/);
 });
 
-test('dashboard tile contains the green Apri telecamera badge',()=>{
+test('dashboard tile contains the green Dettagli e stato badge',()=>{
   const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
-  assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge"[^>]*>[\s\S]*Apri telecamera/);
+  assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge"[^>]*>[\s\S]*mdi:information-outline[\s\S]*Dettagli e stato/);
   assert.match(card.shadowRoot.innerHTML,/\.cg-open-badge\{[^}]*background:var\(--cg-accent\)/);
 });
 
@@ -209,4 +209,15 @@ test('popup close is circular and image action is fully green',()=>{
   assert.match(html,/class="cg-icon-btn"[^>]*data-close="1"/);
   assert.match(html,/class="cg-wide" data-more="image\.ingresso"[^>]*>[^<]*<ha-icon[^>]*>[^<]*<\/ha-icon>Apri dettagli immagine<\/button>/);
   assert.match(html,/\.cg-wide\{[^}]*width:100%;border:0;[^}]*background:var\(--cg-accent\);color:white/);
+});
+
+test('green badge shares the full tile click target and opens the matching camera popup',()=>{
+  const card=new Card();
+  card.setConfig({cameras:[{name:'Ingresso'},{name:'Giardino'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/<button[^>]*class="cg-cell[^>]*data-open="0"[^>]*>[\s\S]*?<span class="cg-open-badge">[\s\S]*?Dettagli e stato<\/span><\/button>/);
+  const tile={dataset:{open:'1'}};
+  card._click({target:{closest(selector){return selector==='[data-open]'?tile:null;}}});
+  assert.equal(card._opened,1);
+  assert.match(card.shadowRoot.innerHTML,/Dettaglio Giardino/);
 });

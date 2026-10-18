@@ -138,7 +138,7 @@ class CameraGridViewCard extends HTMLElement {
     const image=c.show_preview?cgImageUrl(this._state(c.image_entity)):'';
     const visual=c.show_preview?(image?`<img class="cg-preview" alt="Ultima immagine: ${cgEsc(title)}" src="${cgEsc(image)}" loading="lazy"/>`:'<div class="cg-placeholder">'+cgIcon('image-off-outline')+'Immagine non disponibile</div>'):'';
     const last=cgTime(this._lastEvent(c));
-    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta">${last?'Ultimo movimento · '+cgEsc(last.relative):'Ultimo movimento · Non disponibile'}</span></span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<span class="cg-open-badge">${cgIcon('camera-outline')} Apri telecamera</span></button>`;
+    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta">${last?'Ultimo movimento · '+cgEsc(last.relative):'Ultimo movimento · Non disponibile'}</span></span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<span class="cg-open-badge">${cgIcon('information-outline')} Dettagli e stato</span></button>`;
   }
   _status(c,kind){
     const stateId=c[`${kind}_state_entity`], controlId=c[`${kind}_control_entity`];
