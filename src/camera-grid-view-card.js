@@ -91,6 +91,7 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-root{--cg-accent:#0a7156;--cg-muted:#56675c;--cg-surface:#f0f2ef;--cg-circle:#fff;--cg-border:#e0e5df;--cg-bg:#fafbf9;--cg-fg:#18221c;background:var(--cg-bg);color:var(--cg-fg);font-family:inherit;font-size:14px;font-weight:400;border:1px solid var(--cg-border);border-radius:22px;padding:20px;min-width:0;position:relative}
 .cg-root.cg-dark{--cg-accent:#0e795d;--cg-muted:#bbc5bd;--cg-surface:#191c1a;--cg-circle:#282b29;--cg-border:#2b302c;--cg-bg:#101211;--cg-fg:#f5f7f4}
 .cg-head{margin:2px 4px 17px}.cg-eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:750;color:var(--cg-muted);margin-bottom:7px}.cg-title{font-size:25px;line-height:1.14;font-weight:780;letter-spacing:-.7px;overflow-wrap:anywhere}.cg-title b{color:var(--cg-accent);font-weight:800}
+.cg-grid-host{container:cg-camera-grid/inline-size;min-width:0;width:100%}
 .cg-grid{display:grid;grid-template-columns:repeat(var(--cg-cols,2),minmax(0,1fr));gap:12px}
 .cg-cell{border:1px solid var(--cg-border);background:var(--cg-surface);color:inherit;padding:7px 10px;height:82px;border-radius:16px;display:flex;flex-direction:column;gap:2px;justify-content:space-between;text-align:left;min-width:0;transition:border-color .16s,transform .16s}.cg-cell.cg-with-preview{height:auto;min-height:82px}
 .cg-cell:hover,.cg-cell:focus{border-color:var(--cg-accent)}.cg-cell:active{transform:scale(.99)}.cg-cell:focus-visible,.cg-btn:focus-visible,.cg-confirm-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}
@@ -105,6 +106,14 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-event{margin-top:9px;padding:11px 12px;border-radius:14px;background:var(--cg-surface);border:1px solid var(--cg-border);display:flex;gap:10px;align-items:center;min-height:67px;font-size:12px}.cg-event-icon{display:grid;place-items:center;background:var(--cg-circle);width:38px;height:38px;border-radius:50%;flex:none}.cg-event-icon ha-icon{color:var(--cg-fg)}.cg-event-text{flex:1;min-width:0}.cg-event strong{font-weight:600}.cg-event .cg-meta{display:block;margin-top:3px}.cg-btn{border:1px solid var(--cg-border);border-radius:999px;padding:8px 11px;background:var(--cg-circle);color:var(--cg-fg);font-size:12px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.cg-btn:disabled{opacity:.45}
 .cg-wide{display:block;width:100%;border:0;border-radius:14px;margin-top:13px;padding:13px;background:var(--cg-accent);color:white;font-weight:730;font-size:inherit;text-align:center}.cg-wide ha-icon{color:#fff;--mdc-icon-size:18px;width:18px;height:18px;margin-right:7px}.cg-error{margin-top:12px;color:#c74f4f;font-size:12px}.cg-dialog-text{font-size:13px;color:var(--cg-muted);line-height:1.5;margin:10px 0 14px}.cg-dialog-buttons{display:flex;gap:9px}.cg-dialog-buttons .cg-btn,.cg-dialog-buttons .cg-wide{flex:1;justify-content:center;display:flex;align-items:center;margin-top:0}
 @media(max-width:420px){.cg-root{padding:13px;border-radius:23px}.cg-cell{padding:7px 8px;gap:2px;height:77px}.cg-cell.cg-with-preview{height:auto;min-height:77px}.cg-icon-orb{width:36px;height:36px}.cg-name{font-size:11.5px}.cg-meta{font-size:10.5px}.cg-title{font-size:23px}.cg-open-badge{font-size:10px;padding:5px 8px}}
+/* Container-based adaptation: dashboard columns can be narrow even on wide screens.
+   Keep the approved 2-column compact geometry whenever the host is wide enough. */
+@container cg-camera-grid (max-width:480px){
+  .cg-grid{grid-template-columns:1fr}
+  .cg-cell,.cg-cell.cg-with-preview{height:auto;min-height:82px;padding:10px 12px;gap:8px}
+  .cg-info .cg-meta{line-height:1.4}
+  .cg-open-badge{max-width:100%;flex-shrink:0}
+}
 @media(max-width:340px){.cg-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cg-cell{transition:none}.cg-cell:active{transform:none}}
 `;
 class CameraGridViewCard extends HTMLElement {
@@ -186,7 +195,7 @@ class CameraGridViewCard extends HTMLElement {
     const sig=this._signature();if(sig===this._lastSignature)return;this._lastSignature=sig;
     const cfg=this._config;
     const columns=cfg.layout==='auto'?2:cfg.layout==='1'?1:cfg.layout==='2'?2:cfg.layout==='4'?2:cfg.custom_columns;
-    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><ha-card><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div></div>${cfg.cameras.length?`<div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div></ha-card>`;
+    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><ha-card><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div></div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div></ha-card>`;
     // Do not steal focus from action buttons on every state update.
   }
   _close(){this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}

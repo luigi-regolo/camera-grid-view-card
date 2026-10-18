@@ -221,3 +221,25 @@ test('green badge shares the full tile click target and opens the matching camer
   assert.equal(card._opened,1);
   assert.match(card.shadowRoot.innerHTML,/Dettaglio Giardino/);
 });
+
+
+test('dashboard uses an inner container instead of viewport-only media rules',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Porta'},{name:'Giardino'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html, /class="cg-grid-host"><div class="cg-grid">/);
+  assert.match(html, /\.cg-grid-host\{container:cg-camera-grid\/inline-size/);
+  assert.match(html, /@container cg-camera-grid \(max-width:480px\)\{/);
+  assert.match(html, /@container cg-camera-grid \(max-width:480px\)\{[\s\S]*?\.cg-grid\{grid-template-columns:1fr\}/);
+  assert.match(html, /\.cg-cell,\.cg-cell\.cg-with-preview\{height:auto;min-height:82px/);
+  assert.match(html, /\.cg-cell\{[^}]*height:82px/);
+  assert.match(html, /\.cg-cell:hover,\.cg-cell:focus\{border-color:var\(--cg-accent\)\}/);
+});
+
+test('narrow responsive container encloses only grid, not fixed-position modal',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Ingresso'}]});
+  card._opened=0;card._lastSignature='';card._paint();
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html, /<div class="cg-grid-host"><div class="cg-grid">/);
+  assert.match(html, /<\/div><\/div><div class="cg-backdrop"/);
+  assert.match(html, /Dettagli e stato/);
+});
