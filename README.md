@@ -1,6 +1,6 @@
 # Camera Grid View Card
 
-**Camera Grid View Card** è una custom card per le dashboard Home Assistant che raccoglie più telecamere in un'unica griglia. Per ogni telecamera è possibile aprire un popup con l'ultima immagine rilevata, il movimento più recente e, quando disponibili, audio e batteria.
+**Camera Grid View Card** è una custom card per le dashboard Home Assistant che raccoglie più telecamere in un'unica griglia. Per ogni telecamera è possibile aprire un popup con l'ultima immagine rilevata, il movimento più recente e, quando disponibili, audio, stato della registrazione e batteria.
 
 Il design è coerente con Security Panel Card e supporta i temi Auto, Light e Dark.
 
@@ -12,7 +12,7 @@ Il design è coerente con Security Panel Card e supporta i temi Auto, Light e Da
 
 - **Griglia flessibile:** 1, 2, 4 telecamere oppure disposizione personalizzata, senza un limite fisso al numero di telecamere configurabili.
 - **Anteprime opzionali:** è possibile scegliere separatamente per ogni telecamera se mostrare l'ultima immagine nella dashboard. Le anteprime sono **nascoste per impostazione predefinita**.
-- **Apertura immediata:** ogni riquadro mostra il badge verde **Apri telecamera**, con icona circolare e tipografia coerenti con Security Panel Card.
+- **Apertura immediata:** ogni riquadro mostra il badge verde **Dettagli e stato**, con icona circolare e tipografia coerenti con Security Panel Card.
 - **Popup dedicato:** immagine più recente (`image.*`), data dell'ultimo movimento e pulsante verde per aprire i dettagli dell'immagine.
 - **Audio facoltativo:** visualizzazione dello stato e, quando l'integrazione espone un'entità comandabile, pulsante per attivarlo o disattivarlo con conferma esplicita.
 - **Registrazione facoltativa:** stato e comando di attivazione/disattivazione per ciascuna telecamera, con conferma esplicita quando è disponibile un'entità comandabile distinta dal sensore di stato. La card non crea registrazioni autonome.
@@ -40,7 +40,7 @@ L'installazione può essere eseguita aggiungendo il repository come **archivio p
 
 [![Apri Camera Grid View Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
 
-Il pulsante avvia la procedura tramite My Home Assistant. L'aggiunta dell'archivio e l'installazione richiedono la conferma dell'utente; non implica l'inclusione nel catalogo HACS predefinito.
+Il pulsante apre la procedura di installazione tramite My Home Assistant. L'aggiunta del repository e l'installazione richiedono la conferma dell'utente.
 
 1. In Home Assistant aprire **HACS → ⋮ → Archivi personalizzati**.
 2. Inserire `https://github.com/luigi-regolo/camera-grid-view-card`.
@@ -48,8 +48,6 @@ Il pulsante avvia la procedura tramite My Home Assistant. L'aggiunta dell'archiv
 4. Ricaricare la pagina di Home Assistant e aggiungere la scheda dalla dashboard.
 
 Se la risorsa non viene registrata automaticamente, verificare che sia presente `/hacsfiles/camera-grid-view-card/camera-grid-view-card.js` come **Modulo JavaScript** nelle risorse della dashboard.
-
-L'utilizzo come archivio personalizzato **non significa** che il repository sia già incluso nel catalogo HACS predefinito.
 
 ## Configurazione YAML facoltativa
 
@@ -80,8 +78,6 @@ cameras:
 - Le azioni di registrazione si applicano esclusivamente alle entità configurate: non vengono chiamati servizi di registrazione video generici né vengono conservati filmati dalla card.
 - L'ultimo movimento è ricavato dal sensore e da eventuali timestamp disponibili; se necessario la card consulta la cronologia Recorder all'apertura del popup. Quando non ci sono dati affidabili mostra **Non disponibile**.
 - Dispositivi e integrazioni possono usare servizi cloud propri, indipendenti dalla card.
-
-La versione corrente `0.2` è una versione di sviluppo: prima dell'uso in ambienti critici è consigliata la verifica con le entità dell'installazione Home Assistant interessata.
 
 ## Segnalazioni
 
