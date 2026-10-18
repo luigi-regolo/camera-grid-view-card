@@ -75,15 +75,6 @@ cameras:
 
 La versione corrente `0.2` è una versione di sviluppo: prima dell'uso in ambienti critici è consigliata la verifica con le entità dell'installazione Home Assistant interessata.
 
-## Test e sviluppo
-
-È richiesto Node.js 20 o successivo per i test del progetto:
-
-```bash
-npm run check
-npm test
-```
-
 ## Segnalazioni
 
 Eventuali problemi possono essere segnalati nella sezione [Issues del repository](https://github.com/luigi-regolo/camera-grid-view-card/issues). Prima di condividere log, immagini o configurazioni, rimuovere credenziali, token, indirizzi e altri dati personali.
