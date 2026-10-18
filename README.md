@@ -2,8 +2,6 @@
 
 **Camera Grid View Card** è una custom card per le dashboard Home Assistant che raccoglie più telecamere in un'unica griglia. Per ogni telecamera è possibile aprire un popup con l'ultima immagine rilevata, il movimento più recente e, quando disponibili, audio, stato della registrazione e batteria.
 
-Il design è coerente con Security Panel Card e supporta i temi Auto, Light e Dark.
-
 ## Anteprima
 
 ![Camera Grid View Card - anteprima Light](assets/Camera_Grid_View_Card_Anteprima_Finale.png)
