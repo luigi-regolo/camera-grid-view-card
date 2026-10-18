@@ -6,7 +6,7 @@ Il design è coerente con Security Panel Card e supporta i temi Auto, Light e Da
 
 ## Anteprima
 
-![Camera Grid View Card - anteprima Light](assets/camera-grid-view-light.png)
+![Camera Grid View Card - anteprima Light](assets/Camera_Grid_View_Card_Anteprima_Finale.png)
 
 ## Funzionalità
 
