@@ -4,6 +4,10 @@
 
 Il design è coerente con Security Panel Card e supporta i temi Auto, Light e Dark.
 
+## Anteprima
+
+![Camera Grid View Card - anteprima Light](assets/camera-grid-view-light.png)
+
 ## Funzionalità
 
 - **Griglia flessibile:** 1, 2, 4 telecamere oppure disposizione personalizzata, senza un limite fisso al numero di telecamere configurabili.
@@ -33,6 +37,10 @@ Le entità facoltative possono essere lasciate vuote. I controlli audio e regist
 ## Installazione tramite HACS
 
 L'installazione può essere eseguita aggiungendo il repository come **archivio personalizzato** HACS:
+
+[![Apri Camera Grid View Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
+
+Il pulsante avvia la procedura tramite My Home Assistant. L'aggiunta dell'archivio e l'installazione richiedono la conferma dell'utente; non implica l'inclusione nel catalogo HACS predefinito.
 
 1. In Home Assistant aprire **HACS → ⋮ → Archivi personalizzati**.
 2. Inserire `https://github.com/luigi-regolo/camera-grid-view-card`.
