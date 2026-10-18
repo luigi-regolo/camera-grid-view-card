@@ -73,7 +73,7 @@ cameras:
 - L'ultimo movimento è ricavato dal sensore e da eventuali timestamp disponibili; se necessario la card consulta la cronologia Recorder all'apertura del popup. Quando non ci sono dati affidabili mostra **Non disponibile**.
 - Dispositivi e integrazioni possono usare servizi cloud propri, indipendenti dalla card.
 
-La versione corrente `0.1` è una versione di sviluppo: prima dell'uso in ambienti critici è consigliata la verifica con le entità dell'installazione Home Assistant interessata.
+La versione corrente `0.2` è una versione di sviluppo: prima dell'uso in ambienti critici è consigliata la verifica con le entità dell'installazione Home Assistant interessata.
 
 ## Test e sviluppo
 
