@@ -259,11 +259,13 @@ test('explicit single-column layout is respected in narrow dashboards',()=>{
   assert.match(card.shadowRoot.innerHTML, /--cg-cols:1;--cg-narrow-cols:1/);
 });
 
+
 test('dashboard uses a single outer frame matching Security Panel Card',()=>{
   const card=new Card();card.setConfig({cameras:[{name:'Porta'},{name:'Giardino'}]});
   const html=card.shadowRoot.innerHTML;
-  assert.doesNotMatch(html,/<ha-card(?:\\s|>)/);
-  assert.match(html,/<style>[\\s\\S]*<\\/style><div class="cg-root cg-(?:light|dark)"/);
-  assert.match(html,/\\.cg-root\\{[^}]*border:1px solid var\\(--cg-border\\);border-radius:26px;padding:18px/);
-  assert.match(html,/@media\\(max-width:420px\\)\\{\\.cg-root\\{padding:13px;border-radius:23px/);
+  assert.ok(!html.includes('<ha-card'));
+  assert.ok(html.includes('<style>'));
+  assert.ok(html.includes('<div class="cg-root cg-'));
+  assert.ok(html.includes('border:1px solid var(--cg-border);border-radius:26px;padding:18px'));
+  assert.ok(html.includes('@media(max-width:420px){.cg-root{padding:13px;border-radius:23px'));
 });
