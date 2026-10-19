@@ -1,55 +1,107 @@
 # Camera Grid View Card
 
-**Camera Grid View Card** è una custom card per le dashboard Home Assistant che raccoglie più telecamere in un'unica griglia. Per ogni telecamera è possibile aprire un popup con l'ultima immagine rilevata, il movimento più recente e, quando disponibili, audio, stato della registrazione e batteria.
+[![TikTok | Segui](assets/tiktok-segui.svg)](https://www.tiktok.com/@luigi.regolo)
+[![Release](https://img.shields.io/github/v/release/luigi-regolo/camera-grid-view-card?label=Release&style=flat-square)](https://github.com/luigi-regolo/camera-grid-view-card/releases/latest)
+[![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue?style=flat-square)](LICENSE)
+[![HACS](https://img.shields.io/badge/HACS-Repository-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
+[![GitHub Stars](https://img.shields.io/github/stars/luigi-regolo/camera-grid-view-card?style=flat-square)](https://github.com/luigi-regolo/camera-grid-view-card/stargazers)
 
-## Anteprima
+## Overview
 
-![Camera Grid View Card - anteprima Light](assets/Camera_Grid_View_Card_Anteprima_Finale.png)
+**Camera Grid View Card** is a custom camera card for Home Assistant dashboards, designed with a minimalist interface inspired by the Edera Light and Dark visual styles.
 
-## Funzionalità
+It brings together multiple cameras in a compact, responsive grid with dedicated detail views, image snapshots, motion information, and optional audio, recording, and battery status.
 
-- **Griglia flessibile:** 1, 2, 4 telecamere oppure disposizione personalizzata, senza un limite fisso al numero di telecamere configurabili.
-- **Anteprime opzionali:** è possibile scegliere separatamente per ogni telecamera se mostrare l'ultima immagine nella dashboard. Le anteprime sono **nascoste per impostazione predefinita**.
-- **Apertura immediata:** ogni riquadro mostra il badge verde **Dettagli e stato**, con icona circolare e tipografia coerenti con Security Panel Card.
-- **Popup dedicato:** immagine più recente (`image.*`), data dell'ultimo movimento e pulsante verde per aprire i dettagli dell'immagine.
-- **Audio facoltativo:** visualizzazione dello stato e, quando l'integrazione espone un'entità comandabile, pulsante per attivarlo o disattivarlo con conferma esplicita.
-- **Registrazione facoltativa:** stato e comando di attivazione/disattivazione per ciascuna telecamera, con conferma esplicita quando è disponibile un'entità comandabile distinta dal sensore di stato. La card non crea registrazioni autonome.
-- **Batteria facoltativa:** la voce è nascosta quando non è configurato o disponibile un valore valido.
-- **Configurazione grafica:** editor Home Assistant con sezioni **Telecamere**, **Aspetto** e **Avanzate**, una telecamera alla volta, selettori delle entità e opzioni aggiuntive espandibili.
-- **Temi:** Auto, Light e Dark con stile visivo Edera.
+The card uses entities and services already available in Home Assistant. It does not independently start live video streams or record video or audio.
 
-La card visualizza **snapshot**, non avvia automaticamente streaming live e non registra video o audio.
+## Preview
 
-## Configurazione visuale
+![Camera Grid View Card — Edera Light dashboard preview](assets/Camera_Grid_View_Card_Anteprima_Finale.png)
 
-Dall'editor della scheda:
+*Camera Grid View Card interface in Edera Light mode. Displayed information depends on the configured Home Assistant entities and integrations.*
 
-1. In **Telecamere**, aggiungere i dispositivi e selezionare per ciascuno l'entità `image.*` dell'ultima immagine.
-2. Assegnare un nome visualizzato e scegliere se mostrare l'anteprima nella dashboard.
-3. Aprire **Altre opzioni** per collegare movimento, data evento, stato audio, controllo audio, stato registrazione, controllo registrazione e batteria, quando disponibili.
-4. In **Aspetto**, scegliere titolo, tema e disposizione della griglia.
-5. In **Avanzate**, abilitare i comandi reali solo se necessari e dopo aver verificato le entità configurate.
+## Features
 
-Le entità facoltative possono essere lasciate vuote. I controlli audio e registrazione richiedono ciascuno un'entità `switch.*` o `input_boolean.*` realmente collegata alla rispettiva funzione del dispositivo. I sensori `binary_sensor.*` e `sensor.*` forniscono soltanto lo stato e non possono comandare dispositivi. Il pulsante di controllo compare solo se abilitato sia globalmente sia nella singola telecamera e quando lo stato dell'entità di comando è noto. Ogni azione chiede conferma prima di inviare il comando a Home Assistant.
+- **Flexible camera grid:** Layouts for one, two, or four cameras, plus configurable custom columns, without a fixed limit on the number of configured cameras.
+- **Optional image previews:** Show the latest camera image directly in the dashboard. Previews are disabled by default.
+- **Camera details:** Each tile includes a green **Dettagli e stato** indicator and opens a dedicated details popup.
+- **Image snapshots:** Display the latest available image from a compatible `image.*` entity.
+- **Motion information:** Show the most recent available movement using configured sensors, event timestamps, and Home Assistant Recorder history when available.
+- **Optional audio status:** Display the audio state supplied by a compatible entity.
+- **Optional audio controls:** Enable or disable audio using a supported control entity, with explicit confirmation.
+- **Optional recording status:** Display the current recording state when provided by the camera integration.
+- **Optional recording controls:** Control supported recording functions using a compatible entity, with explicit confirmation.
+- **Optional battery information:** Show battery percentage when a valid value is available.
+- **Visual configuration:** Configure individual cameras and settings through the Home Assistant dashboard editor.
+- **Edera appearance:** Automatic, Light, and Dark themes with Home Assistant Material Design Icons.
+- **Responsive layout:** A responsive interface for desktop, smartphone, and tablet dashboards.
 
-## Installazione tramite HACS
+Available information and controls depend on the capabilities of the configured devices and integrations.
 
-L'installazione può essere eseguita aggiungendo il repository come **archivio personalizzato** HACS:
+The card does not provide its own video recording or storage service.
 
-[![Apri Camera Grid View Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
+## Installation
 
-Il pulsante apre la procedura di installazione tramite My Home Assistant. L'aggiunta del repository e l'installazione richiedono la conferma dell'utente.
+### HACS
 
-1. In Home Assistant aprire **HACS → ⋮ → Archivi personalizzati**.
-2. Inserire `https://github.com/luigi-regolo/camera-grid-view-card`.
-3. Selezionare la categoria **Dashboard**, aggiungere l'archivio e installare **Camera Grid View Card**.
-4. Ricaricare la pagina di Home Assistant e aggiungere la scheda dalla dashboard.
+Camera Grid View Card can be installed through HACS using the custom GitHub repository.
 
-Se la risorsa non viene registrata automaticamente, verificare che sia presente `/hacsfiles/camera-grid-view-card/camera-grid-view-card.js` come **Modulo JavaScript** nelle risorse della dashboard.
+[![Open Camera Grid View Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
 
-## Configurazione YAML facoltativa
+1. Open **HACS** in Home Assistant.
+2. Open the HACS menu and select **Custom repositories**.
+3. Enter the repository URL:
 
-La card può essere configurata dall'interfaccia grafica senza scrivere YAML. Il seguente esempio mostra i campi principali con identificativi **fittizi**:
+   `https://github.com/luigi-regolo/camera-grid-view-card`
+
+4. Select **Dashboard** as the repository type and add it.
+5. Find **Camera Grid View Card** in HACS and download it.
+6. Reload the Home Assistant dashboard if necessary.
+7. Add the card using the visual editor.
+
+The repository contains `hacs.json` and the distributable JavaScript module `dist/camera-grid-view-card.js`.
+
+**Note:** The HACS badge provides a shortcut to the custom repository and does not indicate inclusion in the official HACS default catalog.
+
+### Manual installation
+
+1. Download `dist/camera-grid-view-card.js` from the GitHub repository.
+2. Copy the file into the `www` directory of your Home Assistant configuration as `camera-grid-view-card.js`.
+3. Open **Settings → Dashboards → Resources** in Home Assistant.
+4. Add the following resource:
+
+   `/local/camera-grid-view-card.js`
+
+5. Select **JavaScript module** as the resource type.
+6. Reload the dashboard and add the custom card.
+
+If the `www` directory was just created, Home Assistant may need to be restarted before the resource becomes accessible.
+
+## Configuration and Usage
+
+### Visual editor
+
+Open a dashboard in edit mode, add **Camera Grid View Card**, and configure the available settings.
+
+The editor includes three main sections:
+
+- **Cameras:** Add cameras, assign names, select image entities, configure previews, and set optional status and control entities.
+- **Appearance:** Customize the title, header label, theme, and camera grid layout.
+- **Advanced:** Enable optional device controls when needed.
+
+Optional entities can be left unconfigured.
+
+Audio and recording controls require compatible `switch.*` or `input_boolean.*` entities connected to the corresponding device functions.
+
+State-only sensors cannot directly control devices.
+
+Controls must be enabled globally and individually for each relevant camera. Each supported action requires explicit confirmation before sending a command to Home Assistant.
+
+### Example YAML configuration
+
+Camera Grid View Card can be configured through the visual editor without writing YAML.
+
+The following example uses fictional entity identifiers:
 
 ```yaml
 type: custom:camera-grid-view-card
@@ -67,20 +119,89 @@ cameras:
     show_preview: true
 ```
 
-## Sicurezza e privacy
+Replace the example entities with existing entities in your Home Assistant installation.
 
-- Senza anteprima, la scheda non crea l'elemento immagine nella griglia e non richiede lo snapshot finché non viene aperto il popup.
-- La scelta di nascondere le immagini è una **protezione visiva**, non una limitazione dei permessi Home Assistant. Gli utenti già autorizzati possono accedere alle entità anche da altre interfacce.
-- Le immagini sono caricate da URL relativi alla stessa origine di Home Assistant; la card non incorpora servizi di analisi, telemetria o librerie JavaScript remote.
-- I comandi audio e registrazione sono **disattivati di default**. Occorre abilitarli a livello globale e per ogni telecamera interessata. Sono soggetti alle autorizzazioni Home Assistant e chiedono conferma.
-- Le azioni di registrazione si applicano esclusivamente alle entità configurate: non vengono chiamati servizi di registrazione video generici né vengono conservati filmati dalla card.
-- L'ultimo movimento è ricavato dal sensore e da eventuali timestamp disponibili; se necessario la card consulta la cronologia Recorder all'apertura del popup. Quando non ci sono dati affidabili mostra **Non disponibile**.
-- Dispositivi e integrazioni possono usare servizi cloud propri, indipendenti dalla card.
+### Main configuration options
 
-## Segnalazioni
+| Option | Description |
+|---|---|
+| `title` | Main card title. |
+| `eyebrow` | Small header label above the title. |
+| `theme_mode` | `auto`, `light`, or `dark`. |
+| `layout` | `auto`, `1`, `2`, `4`, or `custom`. |
+| `custom_columns` | Number of columns for a custom layout. |
+| `controls_enabled` | Enables optional device controls globally. Disabled by default. |
+| `cameras` | List of configured cameras. |
 
-Eventuali problemi possono essere segnalati nella sezione [Issues del repository](https://github.com/luigi-regolo/camera-grid-view-card/issues). Prima di condividere log, immagini o configurazioni, rimuovere credenziali, token, indirizzi e altri dati personali.
+### Per-camera options
 
-## Licenza
+| Option | Description |
+|---|---|
+| `name` | Display name of the camera. |
+| `image_entity` | Compatible image entity (`image.*`). |
+| `show_preview` | Displays the camera image in the dashboard. Disabled by default. |
+| `motion_entity` | Optional motion sensor (`binary_sensor.*`). |
+| `last_event_entity` | Optional event timestamp entity. |
+| `battery_entity` | Optional battery sensor. |
+| `audio_state_entity` | Optional audio status entity. |
+| `audio_control_entity` | Optional audio control entity. |
+| `audio_control_enabled` | Enables audio control for the selected camera. |
+| `recording_state_entity` | Optional recording status entity. |
+| `recording_control_entity` | Optional recording control entity. |
+| `recording_control_enabled` | Enables recording control for the selected camera. |
 
-GNU GPL-3.0-only — consultare [LICENSE](LICENSE).
+## Compatibility and Requirements
+
+Camera Grid View Card requires:
+
+- Home Assistant with support for custom JavaScript dashboard modules.
+- Compatible Home Assistant entities for the desired camera features.
+- A configured `image.*` entity for displaying image snapshots.
+
+Optional:
+
+- Motion sensors and event timestamps.
+- Audio and recording status entities.
+- Compatible audio and recording control entities.
+- Battery sensors.
+- Home Assistant Recorder history for additional movement information.
+
+No specific minimum Home Assistant version has been independently verified or declared for this repository.
+
+The card uses native Home Assistant functionality and does not require additional JavaScript libraries, subscriptions, or dedicated paid cloud services.
+
+Some camera devices and integrations may depend on their own external services.
+
+## Privacy and Security
+
+Camera Grid View Card uses entities, data, and permissions already available through Home Assistant.
+
+Image previews are disabled by default. When a preview is disabled, the dashboard tile does not request or render the camera image.
+
+Opening a camera details popup may display the latest image provided by the configured Home Assistant entity.
+
+Camera images are loaded from Home Assistant-relative URLs rather than arbitrary external image URLs.
+
+The card does not implement advertising, user tracking, telemetry, analytics, or external JavaScript services.
+
+Audio and recording controls are disabled by default and require explicit configuration and confirmation.
+
+Hiding image previews is a visual privacy measure, not an access-control mechanism. Users with appropriate Home Assistant permissions may still access the underlying entities through other interfaces.
+
+Recent movement information may depend on Home Assistant Recorder availability.
+
+Connected camera devices and integrations may communicate with external services under their respective privacy policies and terms of use.
+
+The card does not independently record or store camera footage.
+
+## Copyright & License
+
+Copyright © 2026 luigi-regolo.
+
+Original project created and maintained by **luigi-regolo**.
+
+Licensed under the **GNU General Public License version 3 only (GPL-3.0-only)**.
+
+See the [LICENSE](LICENSE) file for the complete license terms.
+
+The software is provided without warranty to the extent permitted by applicable law.
