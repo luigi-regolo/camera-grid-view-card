@@ -42,9 +42,19 @@ The card does not provide its own video recording or storage service.
 
 ## Installation
 
-### HACS
+### HACS (Recommended)
 
-Camera Grid View Card can be installed through HACS using the custom GitHub repository.
+Camera Grid View Card is available in the default HACS catalog.
+
+1. Open **HACS** in Home Assistant.
+2. Search for **Camera Grid View Card**.
+3. Select the card and click **Download**.
+4. Reload the Home Assistant dashboard if necessary.
+5. Add the card using the visual editor.
+
+### Alternative: Custom repository
+
+If you prefer to add the repository manually, you can use the HACS custom repository option.
 
 [![Open Camera Grid View Card in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
 
@@ -60,8 +70,6 @@ Camera Grid View Card can be installed through HACS using the custom GitHub repo
 7. Add the card using the visual editor.
 
 The repository contains `hacs.json` and the distributable JavaScript module `dist/camera-grid-view-card.js`.
-
-**Note:** The HACS badge provides a shortcut to the custom repository and does not indicate inclusion in the official HACS default catalog.
 
 ### Manual installation
 
