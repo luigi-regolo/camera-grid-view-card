@@ -16,15 +16,20 @@ The card uses entities and services already available in Home Assistant. It does
 
 ## Preview
 
-![Camera Grid View Card — Edera Light dashboard preview](assets/Camera_Grid_View_Card_Anteprima_Finale.png)
+![Camera Grid View Card — Edera Light dashboard preview](assets/camera-grid-view-card-light.png)
 
-*Camera Grid View Card interface in Edera Light mode. Displayed information depends on the configured Home Assistant entities and integrations.*
+![Camera Grid View Card — Edera Dark dashboard preview](assets/camera-grid-view-card-dark.png)
+
+![Camera Grid View Card — details popup in Edera Light mode](assets/camera-grid-view-card-popup-light.png)
+
+*Camera Grid View Card interface shown with demo data. Displayed information depends on the configured Home Assistant entities and integrations.*
 
 ## Features
 
 - **Flexible camera grid:** Layouts for one, two, or four cameras, plus configurable custom columns, without a fixed limit on the number of configured cameras.
 - **Optional image previews:** Show the latest camera image directly in the dashboard. Previews are disabled by default.
-- **Camera details:** Each tile includes a green **Dettagli e stato** indicator and opens a dedicated details popup.
+- **Camera details:** Each tile includes a **Dettagli e stato** button and opens a dedicated details popup.
+- **Optional automatic popup:** Opens the latest detected image when a configured `image.*` entity updates, then closes automatically after a configurable time. Works only while the dashboard is open and visible. Disabled by default.
 - **Image snapshots:** Display the latest available image from a compatible `image.*` entity.
 - **Motion information:** Show the most recent available movement using configured sensors, event timestamps, and Home Assistant Recorder history when available.
 - **Optional audio status:** Display the audio state supplied by a compatible entity.
@@ -95,7 +100,7 @@ The editor includes three main sections:
 
 - **Cameras:** Add cameras, assign names, select image entities, configure previews, and set optional status and control entities.
 - **Appearance:** Customize the title, header label, theme, and camera grid layout.
-- **Advanced:** Enable optional device controls when needed.
+- **Advanced:** Enable optional device controls and the automatic popup when needed.
 
 Optional entities can be left unconfigured.
 
@@ -104,6 +109,12 @@ Audio and recording controls require compatible `switch.*` or `input_boolean.*` 
 State-only sensors cannot directly control devices.
 
 Controls must be enabled globally and individually for each relevant camera. Each supported action requires explicit confirmation before sending a command to Home Assistant.
+
+### Automatic popup
+
+When enabled, the card opens the camera popup when a camera's `image.*` entity gets a new image, and closes it after the configured number of seconds (default 15, range 5–60). It does not interrupt a popup you opened yourself, and clicking inside the popup keeps it open.
+
+The setting is per card. To limit it to a specific device or person, enable it only on the card of that dashboard (for example a tablet dashboard). It does not work as a push notification and runs on every device that has the dashboard open.
 
 ### Example YAML configuration
 
@@ -139,6 +150,8 @@ Replace the example entities with existing entities in your Home Assistant insta
 | `layout` | `auto`, `1`, `2`, `4`, or `custom`. |
 | `custom_columns` | Number of columns for a custom layout. |
 | `controls_enabled` | Enables optional device controls globally. Disabled by default. |
+| `auto_popup_enabled` | Enables the automatic popup globally. Disabled by default. |
+| `auto_popup_seconds` | Seconds before the automatic popup closes. Default `15`, range `5`–`60`. |
 | `cameras` | List of configured cameras. |
 
 ### Per-camera options
@@ -148,6 +161,7 @@ Replace the example entities with existing entities in your Home Assistant insta
 | `name` | Display name of the camera. |
 | `image_entity` | Compatible image entity (`image.*`). |
 | `show_preview` | Displays the camera image in the dashboard. Disabled by default. |
+| `auto_popup` | Opens the automatic popup for this camera when its image updates. Disabled by default. |
 | `motion_entity` | Optional motion sensor (`binary_sensor.*`). |
 | `last_event_entity` | Optional event timestamp entity. |
 | `battery_entity` | Optional battery sensor. |
@@ -194,6 +208,8 @@ The card does not implement advertising, user tracking, telemetry, analytics, or
 
 Audio and recording controls are disabled by default and require explicit configuration and confirmation.
 
+The automatic popup is disabled by default. When enabled, camera images may appear on screen without user interaction, on every device displaying that dashboard. Enable it only on dashboards in trusted locations.
+
 Hiding image previews is a visual privacy measure, not an access-control mechanism. Users with appropriate Home Assistant permissions may still access the underlying entities through other interfaces.
 
 Recent movement information may depend on Home Assistant Recorder availability.
@@ -201,6 +217,10 @@ Recent movement information may depend on Home Assistant Recorder availability.
 Connected camera devices and integrations may communicate with external services under their respective privacy policies and terms of use.
 
 The card does not independently record or store camera footage.
+
+## Releases
+
+See [GitHub Releases](https://github.com/luigi-regolo/camera-grid-view-card/releases).
 
 ## Copyright & License
 
