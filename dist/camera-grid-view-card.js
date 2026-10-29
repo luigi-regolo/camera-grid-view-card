@@ -16,7 +16,7 @@ const CG_DOMAINS = Object.freeze({
 });
 const CG_DEFAULTS = Object.freeze({
   title: 'Telecamere', eyebrow: 'CAMERA GRID VIEW CARD', theme_mode: 'auto',
-  layout: 'auto', custom_columns: 3, controls_enabled: false, cameras: [],
+  layout: 'auto', custom_columns: 3, controls_enabled: false, auto_popup_enabled: false, auto_popup_seconds: 15, cameras: [],
 });
 function cgText(value, max=100) { return String(value ?? '').trim().slice(0,max); }
 function cgEsc(value) { return String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -26,10 +26,11 @@ function cgEntity(value, domains) {
 }
 function cgCamera(raw={}) {
   const r=raw && typeof raw==='object' && !Array.isArray(raw)?raw:{};
-  const c={name:cgText(r.name,60),show_preview:r.show_preview===true,audio_control_enabled:r.audio_control_enabled===true,recording_control_enabled:r.recording_control_enabled===true};
+  const c={name:cgText(r.name,60),show_preview:r.show_preview===true,audio_control_enabled:r.audio_control_enabled===true,recording_control_enabled:r.recording_control_enabled===true,auto_popup:r.auto_popup===true};
   for(const [key,domains] of Object.entries(CG_DOMAINS)) c[key]=cgEntity(r[key],domains);
   return c;
 }
+function cgSeconds(v){const n=Math.round(Number(v));return v!=null&&v!==''&&Number.isFinite(n)?Math.max(5,Math.min(60,n)):15;}
 function cgConfig(raw={}) {
   const r=raw && typeof raw==='object' && !Array.isArray(raw)?raw:{};
   return {
@@ -40,6 +41,8 @@ function cgConfig(raw={}) {
     layout:['auto','1','2','4','custom'].includes(String(r.layout))?String(r.layout):'auto',
     custom_columns:Number.isInteger(Number(r.custom_columns)) ? Math.max(1,Math.min(12,Number(r.custom_columns))) : 3,
     controls_enabled:r.controls_enabled===true,
+    auto_popup_enabled:r.auto_popup_enabled===true,
+    auto_popup_seconds:cgSeconds(r.auto_popup_seconds),
     // No fixed maximum: users decide how many camera panels to configure.
     cameras:Array.isArray(r.cameras)?r.cameras.map(cgCamera):[],
   };
@@ -119,23 +122,81 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
   .cg-open-badge{max-width:100%;flex-shrink:0;min-width:0;padding:5px 7px;gap:4px;font-size:10px;white-space:normal;overflow-wrap:break-word}
 }
 @container cg-camera-grid (max-width:280px){.cg-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cg-cell{transition:none}.cg-cell:active{transform:none}}
+
+.cg-root{padding:14px}
+.cg-root .cg-head{margin:2px 4px 12px}
+.cg-root .cg-title{font-size:23px}
+.cg-root .cg-grid{gap:8px}
+.cg-root .cg-cell,.cg-root .cg-cell.cg-with-preview{border-radius:20px;padding:10px;gap:8px;min-height:0;height:auto}
+.cg-root .cg-icon-orb{width:38px;height:38px}
+.cg-root .cg-icon-orb ha-icon{width:20px;height:20px;--mdc-icon-size:20px}
+.cg-root .cg-cell .cg-name{font-size:14px}
+.cg-root .cg-cell .cg-meta{font-size:12px;line-height:1.35}
+.cg-root .cg-cell .cg-preview,.cg-root .cg-cell .cg-placeholder{border-radius:14px}
+
+.cg-root{--cg-amber:#8a5a00;--cg-amber-bg:#f6ead0}
+.cg-root.cg-dark{--cg-amber:#e8b04d;--cg-amber-bg:#3a2d12}
+.cg-root .cg-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px 12px}
+.cg-chips{display:flex;gap:6px;flex-wrap:wrap}
+.cg-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cg-border);background:var(--cg-surface);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:600;line-height:1.2;color:var(--cg-muted)}
+.cg-chip ha-icon{width:14px;height:14px;--mdc-icon-size:14px}
+.cg-chip.on{color:var(--cg-fg)}.cg-chip.on ha-icon{color:var(--cg-accent)}
+.cg-icon-orb{position:relative}
+.cg-motion{position:absolute;top:-1px;right:-1px;width:11px;height:11px;border-radius:50%;background:var(--cg-accent);border:2px solid var(--cg-surface)}
+.cg-foot{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
+.cg-root .cg-cell .cg-meta{display:block}
+.cg-root .cg-cell .cg-k{display:block;font-size:10.5px;line-height:1.3;letter-spacing:.15px}
+.cg-root .cg-cell .cg-v{display:block;font-size:12px;line-height:1.35;font-weight:600;color:var(--cg-fg)}
+.cg-flag{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--cg-amber-bg);color:var(--cg-amber)}
+.cg-flag ha-icon{width:14px;height:14px;--mdc-icon-size:14px;color:var(--cg-amber)}
+
+
+.cg-root{--cg-btn-fg:var(--cg-accent)}
+.cg-root.cg-dark{--cg-btn-fg:var(--cg-fg)}
+.cg-root .cg-open-badge{align-self:stretch;flex:1;min-width:0;width:100%;justify-content:center;gap:6px;min-height:36px;padding:8px 12px;font-size:12.5px;font-weight:600;line-height:1.2;border-radius:999px;color:var(--cg-btn-fg);border:1px solid color-mix(in srgb,var(--cg-accent) 45%,transparent);background:color-mix(in srgb,var(--cg-accent) 12%,transparent);transition:background .15s}
+.cg-root .cg-open-badge ha-icon{color:inherit;--mdc-icon-size:16px;width:16px;height:16px}
+.cg-root .cg-cell:hover .cg-open-badge,.cg-root .cg-cell:focus-visible .cg-open-badge{background:color-mix(in srgb,var(--cg-accent) 20%,transparent)}
+
 `;
 class CameraGridViewCard extends HTMLElement {
   static getStubConfig(){return cgConfig();}
   static getConfigElement(){return document.createElement(CG_EDITOR_TAG);}
   constructor(){
     super();this.attachShadow({mode:'open'});this._config=cgConfig();this._hass=null;this._opened=null;
-    this._busy=false;this._error='';this._confirmation=null;this._lastSignature='';this._movement=new Map();this._querying=new Set();
+    this._busy=false;this._error='';this._confirmation=null;this._lastSignature='';this._movement=new Map();this._querying=new Set();this._autoTimer=null;this._autoOpened=false;this._autoCloseAt=0;this._autoLast=new Map();
     this.shadowRoot.addEventListener('click',event=>this._click(event));
     this.shadowRoot.addEventListener('keydown',event=>{if(event.key==='Escape'&&this._opened!==null)this._close();});
     this._onAppearance=()=>this._paint();
     this._media=typeof window!=='undefined'&&typeof window.matchMedia==='function'?window.matchMedia('(prefers-color-scheme:dark)'):null;
   }
   connectedCallback(){this._media?.addEventListener?.('change',this._onAppearance);this._paint();}
-  disconnectedCallback(){this._media?.removeEventListener?.('change',this._onAppearance);}
-  setConfig(raw){this._config=cgConfig(raw);this._opened=null;this._confirmation=null;this._movement.clear();this._lastSignature='';this._paint();}
-  set hass(hass){this._hass=hass;this._paint();}
+  disconnectedCallback(){this._media?.removeEventListener?.('change',this._onAppearance);this._clearAuto();}
+  setConfig(raw){this._clearAuto();this._config=cgConfig(raw);this._opened=null;this._confirmation=null;this._movement.clear();this._lastSignature='';this._paint();}
+  set hass(hass){const prev=this._hass;this._hass=hass;this._detect(prev,hass);this._paint();}
   getCardSize(){return Math.max(2,Math.ceil(this._config.cameras.length/2)*2+1);}
+  _clearAuto(){clearTimeout(this._autoTimer);this._autoTimer=null;this._autoOpened=false;this._autoCloseAt=0;}
+  _detect(prev,hass){
+    const cfg=this._config;
+    if(!cfg.auto_popup_enabled||!prev||!hass?.states)return;
+    if(typeof document!=='undefined'&&document.visibilityState==='hidden')return;
+    const now=Date.now();let hit=-1;
+    cfg.cameras.forEach((c,i)=>{
+      if(!c.auto_popup||!c.image_entity)return;
+      const a=prev.states?.[c.image_entity],b=hass.states[c.image_entity];
+      // Only a genuine new image: both states known and different (no popup on reconnect or unavailable).
+      if(!cgKnown(a)||!cgKnown(b)||a.state===b.state)return;
+      if(now-(this._autoLast.get(i)||0)<2000)return;
+      this._autoLast.set(i,now);hit=i;
+    });
+    if(hit<0)return;
+    // Never interrupt a popup opened by the user or a pending command confirmation.
+    if((this._opened!==null&&!this._autoOpened)||this._confirmation||this._busy)return;
+    this._clearAuto();
+    this._opened=hit;this._error='';this._lastSignature='';this._autoOpened=true;
+    const ms=cfg.auto_popup_seconds*1000;this._autoCloseAt=now+ms;
+    this._autoTimer=setTimeout(()=>{if(this._autoOpened&&this._opened===hit&&!this._confirmation&&!this._busy)this._close();else this._clearAuto();},ms);
+    this._loadMovement(cfg.cameras[hit]);
+  }
   _state(id){return id?this._hass?.states?.[id]:undefined;}
   _isDark(){return this._config.theme_mode==='dark'||(this._config.theme_mode==='auto'&&(this._hass?.themes?.darkMode===true||(!this._hass?.themes&&this._media?.matches)));}
   _lastEvent(c){
@@ -151,7 +212,12 @@ class CameraGridViewCard extends HTMLElement {
     const image=c.show_preview?cgImageUrl(this._state(c.image_entity)):'';
     const visual=c.show_preview?(image?`<img class="cg-preview" alt="Ultima immagine: ${cgEsc(title)}" src="${cgEsc(image)}" loading="lazy"/>`:'<div class="cg-placeholder">'+cgIcon('image-off-outline')+'Immagine non disponibile</div>'):'';
     const last=cgTime(this._lastEvent(c));
-    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta">${last?'Ultimo movimento · '+cgEsc(last.relative):'Ultimo movimento · Non disponibile'}</span></span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<span class="cg-open-badge">${cgIcon('information-outline')} Dettagli e stato</span></button>`;
+    const mot=this._state(c.motion_entity);const motionOn=cgBoolState(mot)===true;
+    const bs=this._state(c.battery_entity);const bn=Number(bs?.state);
+    const lowBat=!!c.battery_entity&&cgKnown(bs)&&Number.isFinite(bn)&&bn>=0&&bn<20;
+    const badge=`<span class="cg-open-badge">Dettagli e stato ${cgIcon('chevron-right')}</span>`;
+    const flag=lowBat?`<span class="cg-flag" title="Batteria bassa: ${Math.round(bn)}%">${cgIcon('battery-alert')}</span>`:'';
+    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}${motionOn?', movimento in corso':''}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}${motionOn?'<i class="cg-motion" title="Movimento in corso"></i>':''}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta"><span class="cg-k">Movimento</span><span class="cg-v">${last?cgEsc(last.relative).replace(/ /g,' '):'Non disponibile'}</span></span></span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<span class="cg-foot">${badge}${flag}</span></button>`;
   }
   _status(c,kind){
     const stateId=c[`${kind}_state_entity`], controlId=c[`${kind}_control_entity`];
@@ -198,11 +264,15 @@ class CameraGridViewCard extends HTMLElement {
     if(!this.shadowRoot||!this.isConnected)return;
     const sig=this._signature();if(sig===this._lastSignature)return;this._lastSignature=sig;
     const cfg=this._config;
+    const nowMs=Date.now();
+    const recent=cfg.cameras.filter(c=>{const t=cgTime(this._lastEvent(c),nowMs);return !!t&&nowMs-t.ms<3600000;}).length;
+    const nCam=cfg.cameras.length;
+    const chips=nCam?`<div class="cg-chips"><span class="cg-chip">${cgIcon('cctv')}${nCam} ${nCam===1?'telecamera':'telecamere'}</span>${recent?`<span class="cg-chip on" title="Ultimo movimento entro 1 ora">${cgIcon('motion-sensor')}${recent} con movimento recente</span>`:''}</div>`:'';
     const columns=cfg.layout==='auto'?2:cfg.layout==='1'?1:cfg.layout==='2'?2:cfg.layout==='4'?2:cfg.custom_columns;
-    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div></div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div>`;
+    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div>${chips}</div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div>`;
     // Do not steal focus from action buttons on every state update.
   }
-  _close(){this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
+  _close(){this._clearAuto();this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
   async _loadMovement(c){
     if(!c.motion_entity||c.last_event_entity||this._querying.has(c.motion_entity)||typeof this._hass?.callApi!=='function')return;
     this._querying.add(c.motion_entity);
@@ -236,6 +306,7 @@ class CameraGridViewCard extends HTMLElement {
   async _toggleAudio(index){return this._performControl('audio',index);}
   async _toggleRecording(index){return this._performControl('recording',index);}
   _click(event){
+    this._clearAuto();
     if(event.target?.dataset?.backdrop==='1'){this._close();return;}
     if(event.target.closest('[data-close]')){this._close();return;}
     if(event.target.closest('[data-cancel]')){this._confirmation=null;this._lastSignature='';this._paint();return;}
@@ -339,6 +410,7 @@ class CameraGridViewCardEditor extends HTMLElement {
       this._entityField(index,'image_entity','Ultima immagine rilevata (image.*)')+
       this._input(index,'name','Nome visualizzato',cam.name)+
       this._check(index,'show_preview','Mostra ultima immagine nella dashboard','Disattivata di default per privacy. Il popup resta disponibile.')+
+      this._check(index,'auto_popup','Apri il popup a una nuova immagine rilevata','Richiede anche l’opzione generale in Avanzate. Funziona solo con la dashboard aperta.')+
       this._more(`camera-${index}`,extra)+'</section>';
   }
   _render(){
@@ -367,6 +439,8 @@ class CameraGridViewCardEditor extends HTMLElement {
     if(this._tab==='avanzate'){
       body='<div class="cg-heading">Avanzate</div><div class="cg-desc">La card è inizialmente in sola lettura. Abilita i comandi soltanto dopo aver verificato le entità configurate.</div>'+
         this._check('global','controls_enabled','Abilita i comandi reali','Permette il controllo audio e registrazione esclusivamente per le telecamere autorizzate. I permessi Home Assistant restano necessari.')+
+        this._check('global','auto_popup_enabled','Apri il popup a una nuova immagine rilevata','Mostra automaticamente l’ultima immagine rilevata e la chiude dopo il tempo indicato. Solo con la dashboard aperta. Disattivato di default.')+
+        this._field('Secondi prima della chiusura automatica (5–60)',`<input class="cg-input" type="number" min="5" max="60" data-scope="global" data-key="auto_popup_seconds" value="${c.auto_popup_seconds}"/>`)+
         '<div class="cg-muted" style="margin-top:18px">Le anteprime nascoste impediscono la visualizzazione delle immagini nella dashboard, ma non sostituiscono le autorizzazioni di Home Assistant.</div>';
     }
     this.shadowRoot.innerHTML=`<style>${CG_EDITOR_CSS}</style><div class="cg-editor"><div class="cg-tabs">${tabs.map(([id,label])=>`<button type="button" class="cg-tab ${this._tab===id?'active':''}" data-tab="${id}">${label}</button>`).join('')}</div>${body}</div>`;

@@ -87,10 +87,10 @@ test('Edera title uses attached green punctuation, not a detached decorative dot
   assert.doesNotMatch(card.shadowRoot.innerHTML, /cg-dot/);
 });
 
-test('dashboard tile contains the green Dettagli e stato badge',()=>{
+test('dashboard tile contains the Weather Pulse style Dettagli e stato button',()=>{
   const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
-  assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge"[^>]*>[\s\S]*mdi:information-outline[\s\S]*Dettagli e stato/);
-  assert.match(card.shadowRoot.innerHTML,/\.cg-open-badge\{[^}]*background:var\(--cg-accent\)/);
+  assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge">Dettagli e stato[\s\S]*mdi:chevron-right/);
+  assert.match(card.shadowRoot.innerHTML,/\.cg-root \.cg-open-badge\{[^}]*border-radius:999px[^}]*color-mix\(in srgb,var\(--cg-accent\) 12%,transparent\)/);
 });
 
 test('editor has Security Panel style tabs and vertical fields',()=>{
@@ -211,11 +211,11 @@ test('popup close is circular and image action is fully green',()=>{
   assert.match(html,/\.cg-wide\{[^}]*width:100%;border:0;[^}]*background:var\(--cg-accent\);color:white/);
 });
 
-test('green badge shares the full tile click target and opens the matching camera popup',()=>{
+test('details button shares the full tile click target and opens the matching camera popup',()=>{
   const card=new Card();
   card.setConfig({cameras:[{name:'Ingresso'},{name:'Giardino'}]});
   const html=card.shadowRoot.innerHTML;
-  assert.match(html,/<button[^>]*class="cg-cell[^>]*data-open="0"[^>]*>[\s\S]*?<span class="cg-open-badge">[\s\S]*?Dettagli e stato<\/span><\/button>/);
+  assert.match(html,/<button[^>]*class="cg-cell[^>]*data-open="0"[^>]*>[\s\S]*?<span class="cg-open-badge">Dettagli e stato [\s\S]*?<\/span><\/button>/);
   const tile={dataset:{open:'1'}};
   card._click({target:{closest(selector){return selector==='[data-open]'?tile:null;}}});
   assert.equal(card._opened,1);
@@ -268,4 +268,60 @@ test('dashboard uses a single outer frame matching Security Panel Card',()=>{
   assert.ok(html.includes('<div class="cg-root cg-'));
   assert.ok(html.includes('border:1px solid var(--cg-border);border-radius:26px;padding:18px'));
   assert.ok(html.includes('@media(max-width:420px){.cg-root{padding:13px;border-radius:23px'));
+});
+
+test('auto popup is opt-in with a 15 s default clamped to 5-60',()=>{
+  assert.equal(cgConfig({}).auto_popup_enabled,false);
+  assert.equal(cgConfig({}).auto_popup_seconds,15);
+  assert.equal(cgConfig({auto_popup_seconds:1}).auto_popup_seconds,5);
+  assert.equal(cgConfig({auto_popup_seconds:999}).auto_popup_seconds,60);
+  assert.equal(cgConfig({auto_popup_seconds:'abc'}).auto_popup_seconds,15);
+  assert.equal(cgConfig({cameras:[{name:'A'}]}).cameras[0].auto_popup,false);
+  assert.equal(cgConfig({cameras:[{name:'A',auto_popup:true}]}).cameras[0].auto_popup,true);
+});
+
+const img=(state)=>({state,attributes:{entity_picture:'/api/image_proxy/image.spioncino'}});
+function autoCard(extra={}){
+  const card=new Card();
+  card.setConfig({auto_popup_enabled:true,auto_popup_seconds:5,cameras:[{name:'Spioncino',image_entity:'image.spioncino',auto_popup:true},{name:'Garage',image_entity:'image.garage'}],...extra});
+  card.hass={states:{'image.spioncino':img('2026-10-29T10:00:00+00:00'),'image.garage':img('2026-10-29T10:00:00+00:00')}};
+  return card;
+}
+
+test('auto popup: no popup on first load, opens on a new image, never for cameras not enabled',()=>{
+  const card=autoCard();
+  assert.equal(card._opened,null);
+  card.hass={states:{'image.spioncino':img('2026-10-29T10:05:00+00:00'),'image.garage':img('2026-10-29T10:00:00+00:00')}};
+  assert.equal(card._opened,0);
+  card._close();
+  card.hass={states:{'image.spioncino':img('2026-10-29T10:05:00+00:00'),'image.garage':img('2026-10-29T10:06:00+00:00')}};
+  assert.equal(card._opened,null);
+  card._clearAuto();
+});
+
+test('auto popup: disabled globally, unavailable transitions and user-opened popups are respected',()=>{
+  const off=autoCard({auto_popup_enabled:false});
+  off.hass={states:{'image.spioncino':img('2026-10-29T10:05:00+00:00')}};
+  assert.equal(off._opened,null);
+  const card=autoCard();
+  card.hass={states:{'image.spioncino':{state:'unavailable',attributes:{}}}};
+  card.hass={states:{'image.spioncino':img('2026-10-29T10:07:00+00:00')}};
+  assert.equal(card._opened,null);
+  const manual=autoCard();
+  manual._opened=1;
+  manual.hass={states:{'image.spioncino':img('2026-10-29T10:09:00+00:00'),'image.garage':img('2026-10-29T10:00:00+00:00')}};
+  assert.equal(manual._opened,1);
+  assert.equal(manual._autoOpened,false);
+});
+
+test('auto popup: closes after the configured time and a click cancels the auto-close',async()=>{
+  const card=autoCard({auto_popup_seconds:5});
+  card.hass={states:{'image.spioncino':img('2026-10-29T10:05:00+00:00'),'image.garage':img('2026-10-29T10:00:00+00:00')}};
+  assert.equal(card._opened,0);
+  assert.ok(card._autoCloseAt>Date.now()+4000&&card._autoCloseAt<=Date.now()+5100);
+  card._click({target:{closest:()=>null,dataset:{}}});
+  assert.equal(card._autoTimer,null);
+  assert.equal(card._opened,0);
+  card._close();
+  assert.equal(card._opened,null);
 });
