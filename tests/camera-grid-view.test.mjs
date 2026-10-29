@@ -205,7 +205,7 @@ test('popup close is circular and image action is fully green',()=>{
   const card=new Card();card.setConfig({cameras:[{image_entity:'image.ingresso'}]});
   card._opened=0;card._lastSignature='';card._paint();
   const html=card.shadowRoot.innerHTML;
-  assert.match(html,/\.cg-icon-btn\{[^}]*width:36px;height:36px;[^}]*border-radius:50%/);
+  assert.match(html,/\.cg-icon-btn\{[^}]*width:40px;height:40px;border-radius:50%;border:1px solid var\(--cg-border\)/);
   assert.match(html,/class="cg-icon-btn"[^>]*data-close="1"/);
   assert.match(html,/class="cg-wide" data-more="image\.ingresso"[^>]*>[^<]*<ha-icon[^>]*>[^<]*<\/ha-icon>Apri dettagli immagine<\/button>/);
   assert.match(html,/\.cg-wide\{[^}]*width:100%;border:0;[^}]*background:var\(--cg-accent\);color:white/);
@@ -324,4 +324,40 @@ test('auto popup: closes after the configured time and a click cancels the auto-
   assert.equal(card._opened,0);
   card._close();
   assert.equal(card._opened,null);
+});
+
+test('details button stays on one line and compacts in narrow tiles',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/\.cg-root \.cg-open-badge\{white-space:nowrap;flex:1 1 auto;min-width:max-content\}/);
+  assert.match(html,/@container cg-cell \(max-width:175px\)/);
+});
+
+test('popup has a fixed header (title and X) above a scrolling body, like Entity Health Card',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
+  card._opened=0;card._lastSignature='';card._paint();
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/<div class="cg-dialog-head"><strong>Ingresso<\/strong><button class="cg-icon-btn"[^>]*data-close="1"[^>]*>[\s\S]*?<\/button><\/div><div class="cg-dialog-body">/);
+  assert.match(html,/\.cg-dialog-head\{flex:none;[^}]*border-bottom:1px solid var\(--cg-border\)/);
+  assert.match(html,/\.cg-dialog\{[^}]*display:flex;flex-direction:column;[^}]*overflow:hidden/);
+  assert.match(html,/\.cg-dialog-body\{overflow-y:auto/);
+});
+
+test('low battery is shown as a chip in the tile header, not next to the details button',()=>{
+  const card=new Card();
+  card.setConfig({cameras:[{name:'Giardino',image_entity:'image.g',battery_entity:'sensor.b'},{name:'Garage',image_entity:'image.h',battery_entity:'sensor.c'}]});
+  card.hass={states:{'sensor.b':{state:'14',attributes:{}},'sensor.c':{state:'80',attributes:{}}}};
+  const html=card.shadowRoot.innerHTML;
+  assert.equal((html.match(/class="cg-bat"/g)||[]).length,1);
+  assert.match(html,/class="cg-bat" title="Batteria bassa: 14%"[^>]*>[\s\S]*?<b>14%<\/b>/);
+  assert.doesNotMatch(html,/class="cg-foot"><span class="cg-open-badge">[^]*?<\/span><span class="cg-flag"/);
+});
+
+test('opening the popup moves focus to the close button so Escape works',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
+  let focused=0;
+  const sr=card.shadowRoot;const q=sr.querySelector;
+  sr.querySelector=s=>s==='[data-close]'?{focus(){focused++;}}:q.call(sr,s);
+  card._opened=0;card._lastSignature='';card._paint();
+  assert.equal(focused,1);
 });

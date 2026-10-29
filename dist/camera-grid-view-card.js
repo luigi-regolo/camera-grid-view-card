@@ -103,8 +103,9 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-preview{width:100%;aspect-ratio:16/10;border-radius:12px;background:var(--cg-circle);object-fit:cover;display:block}.cg-placeholder{border:1px dashed var(--cg-border);border-radius:12px;min-height:70px;display:flex;align-items:center;gap:9px;justify-content:center;color:var(--cg-muted);font-size:11px}
 .cg-open-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:var(--cg-accent);color:#fff;font-size:11px;font-weight:650;line-height:1.2}.cg-open-badge ha-icon{--mdc-icon-size:14px;width:14px;height:14px;color:#fff}
 .cg-meta{font-size:11.5px;color:var(--cg-muted);line-height:1.3;overflow-wrap:anywhere}.cg-info .cg-meta{display:block;margin-top:3px}.cg-empty{padding:12px;color:var(--cg-muted);font-size:12px}
-.cg-backdrop{position:fixed;inset:0;z-index:9999;background:#0009;display:grid;place-items:center;padding:16px}.cg-dialog{width:min(390px,100%);max-height:90vh;overflow:auto;background:var(--cg-bg);color:var(--cg-fg);border:1px solid var(--cg-border);border-radius:26px;padding:20px;box-shadow:0 18px 60px #0005}
-.cg-dialog-head{display:flex;align-items:center;gap:10px;min-height:38px;margin-bottom:10px}.cg-dialog-head strong{flex:1;font-size:17px;font-weight:600;line-height:1.3}.cg-icon-btn{display:grid;place-items:center;flex:none;width:36px;height:36px;border:0;background:var(--cg-surface);color:var(--cg-fg);border-radius:50%;padding:0}.cg-icon-btn ha-icon{--mdc-icon-size:18px;width:18px;height:18px}
+.cg-backdrop{position:fixed;inset:0;overscroll-behavior:contain;z-index:9999;background:#0009;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}.cg-dialog{width:min(390px,100%);max-height:min(88vh,680px);display:flex;flex-direction:column;background:var(--cg-bg);color:var(--cg-fg);border:1px solid var(--cg-border);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #0005}
+.cg-dialog-body{overflow-y:auto;overscroll-behavior:contain;padding:12px 18px 18px;min-width:0}
+.cg-dialog-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 12px 18px;background:var(--cg-bg);border-bottom:1px solid var(--cg-border)}.cg-dialog-head strong{flex:1;min-width:0;margin:0;font-size:17px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}.cg-icon-btn{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--cg-border);background:var(--cg-surface);color:var(--cg-fg);display:grid;place-items:center;padding:0}.cg-icon-btn ha-icon{--mdc-icon-size:20px;width:20px;height:20px}.cg-icon-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}
 .cg-snapshot-box{margin:12px 0;border-radius:17px;background:var(--cg-surface);padding:15px;text-align:center}.cg-snapshot-title{font-size:12px;font-weight:650;color:var(--cg-muted);margin-bottom:9px}.cg-snapshot{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:12px}
 .cg-event{margin-top:9px;padding:11px 12px;border-radius:14px;background:var(--cg-surface);border:1px solid var(--cg-border);display:flex;gap:10px;align-items:center;min-height:67px;font-size:12px}.cg-event-icon{display:grid;place-items:center;background:var(--cg-circle);width:38px;height:38px;border-radius:50%;flex:none}.cg-event-icon ha-icon{color:var(--cg-fg)}.cg-event-text{flex:1;min-width:0}.cg-event strong{font-weight:600}.cg-event .cg-meta{display:block;margin-top:3px}.cg-btn{border:1px solid var(--cg-border);border-radius:999px;padding:8px 11px;background:var(--cg-circle);color:var(--cg-fg);font-size:12px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.cg-btn:disabled{opacity:.45}
 .cg-wide{display:block;width:100%;border:0;border-radius:14px;margin-top:13px;padding:13px;background:var(--cg-accent);color:white;font-weight:730;font-size:inherit;text-align:center}.cg-wide ha-icon{color:#fff;--mdc-icon-size:18px;width:18px;height:18px;margin-right:7px}.cg-error{margin-top:12px;color:#c74f4f;font-size:12px}.cg-dialog-text{font-size:13px;color:var(--cg-muted);line-height:1.5;margin:10px 0 14px}.cg-dialog-buttons{display:flex;gap:9px}.cg-dialog-buttons .cg-btn,.cg-dialog-buttons .cg-wide{flex:1;justify-content:center;display:flex;align-items:center;margin-top:0}
@@ -147,8 +148,6 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-root .cg-cell .cg-meta{display:block}
 .cg-root .cg-cell .cg-k{display:block;font-size:10.5px;line-height:1.3;letter-spacing:.15px}
 .cg-root .cg-cell .cg-v{display:block;font-size:12px;line-height:1.35;font-weight:600;color:var(--cg-fg)}
-.cg-flag{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--cg-amber-bg);color:var(--cg-amber)}
-.cg-flag ha-icon{width:14px;height:14px;--mdc-icon-size:14px;color:var(--cg-amber)}
 
 
 .cg-root{--cg-btn-fg:var(--cg-accent)}
@@ -156,6 +155,17 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-root .cg-open-badge{align-self:stretch;flex:1;min-width:0;width:100%;justify-content:center;gap:6px;min-height:36px;padding:8px 12px;font-size:12.5px;font-weight:600;line-height:1.2;border-radius:999px;color:var(--cg-btn-fg);border:1px solid color-mix(in srgb,var(--cg-accent) 45%,transparent);background:color-mix(in srgb,var(--cg-accent) 12%,transparent);transition:background .15s}
 .cg-root .cg-open-badge ha-icon{color:inherit;--mdc-icon-size:16px;width:16px;height:16px}
 .cg-root .cg-cell:hover .cg-open-badge,.cg-root .cg-cell:focus-visible .cg-open-badge{background:color-mix(in srgb,var(--cg-accent) 20%,transparent)}
+.cg-root .cg-cell{container:cg-cell/inline-size}
+.cg-root .cg-open-badge{white-space:nowrap;flex:1 1 auto;min-width:max-content}
+/* Narrow tiles (tablets, many columns): keep the label on one line by compacting the button. */
+@container cg-cell (max-width:175px){.cg-root .cg-open-badge{font-size:11px;padding:8px;gap:3px;min-height:34px}.cg-root .cg-open-badge ha-icon{--mdc-icon-size:14px;width:14px;height:14px}}
+@container cg-cell (max-width:175px){.cg-root .cg-arrow{display:none}.cg-root .cg-cell .cg-v{font-size:11.5px}.cg-root .cg-cell .cg-icon-orb{width:32px;height:32px}.cg-root .cg-cell .cg-top{gap:5px}}
+@container cg-cell (max-width:150px){.cg-root .cg-cell .cg-v{font-size:10.5px}}
+@container cg-cell (max-width:145px){.cg-root .cg-open-badge ha-icon{display:none}}
+@container cg-cell (max-width:128px){.cg-root .cg-open-badge{font-size:10px;padding:7px 5px;min-height:32px}}
+@container cg-cell (max-width:112px){.cg-root .cg-open-badge{white-space:normal;min-width:0;line-height:1.15}}
+.cg-bat{display:inline-flex;align-items:center;gap:3px;flex:none;border-radius:999px;padding:3px 8px 3px 5px;background:var(--cg-amber-bg);color:var(--cg-amber);font-size:11px;font-weight:700}.cg-bat b{font-weight:700}.cg-bat ha-icon{width:14px;height:14px;--mdc-icon-size:14px;color:var(--cg-amber)}
+@container cg-cell (max-width:175px){.cg-root .cg-bat{padding:4px}.cg-root .cg-bat b{display:none}}
 
 `;
 class CameraGridViewCard extends HTMLElement {
@@ -216,8 +226,7 @@ class CameraGridViewCard extends HTMLElement {
     const bs=this._state(c.battery_entity);const bn=Number(bs?.state);
     const lowBat=!!c.battery_entity&&cgKnown(bs)&&Number.isFinite(bn)&&bn>=0&&bn<20;
     const badge=`<span class="cg-open-badge">Dettagli e stato ${cgIcon('chevron-right')}</span>`;
-    const flag=lowBat?`<span class="cg-flag" title="Batteria bassa: ${Math.round(bn)}%">${cgIcon('battery-alert')}</span>`:'';
-    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}${motionOn?', movimento in corso':''}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}${motionOn?'<i class="cg-motion" title="Movimento in corso"></i>':''}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta"><span class="cg-k">Movimento</span><span class="cg-v">${last?cgEsc(last.relative).replace(/ /g,' '):'Non disponibile'}</span></span></span><span class="cg-arrow">${cgIcon('chevron-right')}</span></div>${visual}<span class="cg-foot">${badge}${flag}</span></button>`;
+    return `<button type="button" class="cg-cell ${c.show_preview?'cg-with-preview':''}" data-open="${i}" aria-label="Apri dettaglio ${cgEsc(title)}${motionOn?', movimento in corso':''}"><div class="cg-top"><span class="cg-icon-orb">${cgIcon('cctv')}${motionOn?'<i class="cg-motion" title="Movimento in corso"></i>':''}</span><span class="cg-info"><span class="cg-name">${cgEsc(title)}</span><span class="cg-meta"><span class="cg-k">Movimento</span><span class="cg-v">${last?cgEsc(last.relative).replace(/ /g,' '):'Non disponibile'}</span></span></span>${lowBat?`<span class="cg-bat" title="Batteria bassa: ${Math.round(bn)}%">${cgIcon('battery-alert')}<b>${Math.round(bn)}%</b></span>`:`<span class="cg-arrow">${cgIcon('chevron-right')}</span>`}</div>${visual}<span class="cg-foot">${badge}</span></button>`;
   }
   _status(c,kind){
     const stateId=c[`${kind}_state_entity`], controlId=c[`${kind}_control_entity`];
@@ -231,13 +240,13 @@ class CameraGridViewCard extends HTMLElement {
       const confirm=this._confirmation;
       const label=confirm.kind==='audio'?'audio':'registrazione';
       const verb=confirm.expected?'disattivare':'attivare';
-      return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Conferma ${label}">${head}<div class="cg-dialog-text">Vuoi ${verb} ${label} per ${cgEsc(title)}?</div><div class="cg-dialog-buttons"><button type="button" class="cg-btn" data-cancel="1">Annulla</button><button type="button" class="cg-wide" data-confirm="1" ${this._busy?'disabled':''}>Conferma</button></div>${this._error?`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`:''}</div></div>`;
+      return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Conferma ${label}">${head}<div class="cg-dialog-body"><div class="cg-dialog-text">Vuoi ${verb} ${label} per ${cgEsc(title)}?</div><div class="cg-dialog-buttons"><button type="button" class="cg-btn" data-cancel="1">Annulla</button><button type="button" class="cg-wide" data-confirm="1" ${this._busy?'disabled':''}>Conferma</button></div>${this._error?`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`:''}</div></div></div>`;
     }
     const url=cgImageUrl(this._state(c.image_entity));
     const last=cgTime(this._lastEvent(c));
     const bat=this._state(c.battery_entity);const n=Number(bat?.state);
     const battery=c.battery_entity&&cgKnown(bat)&&Number.isFinite(n)&&n>=0&&n<=100?Math.round(n):null;
-    let content=head;
+    let content='';
     content+=`<div class="cg-snapshot-box"><div class="cg-snapshot-title">Ultima immagine rilevata</div>${url?`<img class="cg-snapshot" src="${cgEsc(url)}" alt="Ultima immagine rilevata: ${cgEsc(title)}"/>`:'<div class="cg-placeholder">Immagine non disponibile. Configura un’entità image.*</div>'}</div>`;
     content+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('motion-sensor')}</span><div class="cg-event-text"><strong>Ultimo movimento rilevato</strong><div class="cg-meta">${last?cgEsc(last.relative)+' · '+cgEsc(last.exact):'Non disponibile negli eventi recenti'}</div></div></div>`;
     for(const kind of ['audio','recording']){
@@ -253,7 +262,7 @@ class CameraGridViewCard extends HTMLElement {
     if(c.battery_entity&&battery!==null)content+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('battery')}</span><div class="cg-event-text"><strong>Batteria</strong><div class="cg-meta">${battery}%</div></div></div>`;
     if(c.image_entity)content+=`<button type="button" class="cg-wide" data-more="${cgEsc(c.image_entity)}">${cgIcon('arrow-expand')}Apri dettagli immagine</button>`;
     if(this._error)content+=`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`;
-    return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Dettaglio ${cgEsc(title)}">${content}</div></div>`;
+    return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Dettaglio ${cgEsc(title)}">${head}<div class="cg-dialog-body">${content}</div></div></div>`;
   }
   _signature(){
     const ids=this._config.cameras.flatMap(c=>Object.keys(CG_DOMAINS).map(k=>c[k]).filter(Boolean));
@@ -269,8 +278,11 @@ class CameraGridViewCard extends HTMLElement {
     const nCam=cfg.cameras.length;
     const chips=nCam?`<div class="cg-chips"><span class="cg-chip">${cgIcon('cctv')}${nCam} ${nCam===1?'telecamera':'telecamere'}</span>${recent?`<span class="cg-chip on" title="Ultimo movimento entro 1 ora">${cgIcon('motion-sensor')}${recent} con movimento recente</span>`:''}</div>`:'';
     const columns=cfg.layout==='auto'?2:cfg.layout==='1'?1:cfg.layout==='2'?2:cfg.layout==='4'?2:cfg.custom_columns;
+    const bodyTop=this.shadowRoot.querySelector?.('.cg-dialog-body')?.scrollTop||0;
     this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div>${chips}</div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div>`;
-    // Do not steal focus from action buttons on every state update.
+    if(bodyTop){const b=this.shadowRoot.querySelector('.cg-dialog-body');if(b)b.scrollTop=bodyTop;}
+    // Keep keyboard focus inside the popup (on the close button) so Escape works; never move focus if it is already on a popup control.
+    if(this._opened!==null&&!this.shadowRoot.activeElement){const x=this.shadowRoot.querySelector('[data-close]');x?.focus?.({preventScroll:true});}
   }
   _close(){this._clearAuto();this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
   async _loadMovement(c){
