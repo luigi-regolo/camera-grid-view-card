@@ -1,9 +1,8 @@
 # Camera Grid View Card
 
-[![TikTok | Segui](assets/tiktok-segui.svg)](https://www.tiktok.com/@luigi.regolo)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
 [![Release](https://img.shields.io/github/v/release/luigi-regolo/camera-grid-view-card?label=Release&style=flat-square)](https://github.com/luigi-regolo/camera-grid-view-card/releases/latest)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue?style=flat-square)](LICENSE)
-[![HACS](https://img.shields.io/badge/HACS-Repository-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=luigi-regolo&repository=camera-grid-view-card&category=plugin)
 [![GitHub Stars](https://img.shields.io/github/stars/luigi-regolo/camera-grid-view-card?style=flat-square)](https://github.com/luigi-regolo/camera-grid-view-card/stargazers)
 
 ## Overview
