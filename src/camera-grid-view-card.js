@@ -13,9 +13,11 @@ const CG_DOMAINS = Object.freeze({
   audio_control_entity: ['switch', 'input_boolean'],
   recording_state_entity: ['switch', 'input_boolean', 'binary_sensor', 'sensor'],
   recording_control_entity: ['switch', 'input_boolean'],
+  // Optional live camera (any integration). Live video is rendered by the native Home Assistant card.
+  camera_entity: ['camera'],
 });
 const CG_DEFAULTS = Object.freeze({
-  title: 'Telecamere', eyebrow: 'CAMERA GRID VIEW CARD', theme_mode: 'auto',
+  title: 'Telecamere', eyebrow: 'CAMERA GRID VIEW CARD', show_eyebrow: true, show_title: true, theme_mode: 'auto',
   layout: 'auto', custom_columns: 3, controls_enabled: false, auto_popup_enabled: false, auto_popup_seconds: 15, cameras: [],
 });
 function cgText(value, max=100) { return String(value ?? '').trim().slice(0,max); }
@@ -26,7 +28,7 @@ function cgEntity(value, domains) {
 }
 function cgCamera(raw={}) {
   const r=raw && typeof raw==='object' && !Array.isArray(raw)?raw:{};
-  const c={name:cgText(r.name,60),show_preview:r.show_preview===true,audio_control_enabled:r.audio_control_enabled===true,recording_control_enabled:r.recording_control_enabled===true,auto_popup:r.auto_popup===true};
+  const c={name:cgText(r.name,60),show_preview:r.show_preview===true,audio_control_enabled:r.audio_control_enabled===true,recording_control_enabled:r.recording_control_enabled===true,auto_popup:r.auto_popup===true,live_preview:r.live_preview===true};
   for(const [key,domains] of Object.entries(CG_DOMAINS)) c[key]=cgEntity(r[key],domains);
   return c;
 }
@@ -37,6 +39,9 @@ function cgConfig(raw={}) {
     type: 'custom:camera-grid-view-card',
     title:cgText(r.title??CG_DEFAULTS.title,60),
     eyebrow:cgText(r.eyebrow??CG_DEFAULTS.eyebrow,60),
+    // Header label and title are shown unless explicitly switched off (existing dashboards are unchanged).
+    show_eyebrow:r.show_eyebrow!==false,
+    show_title:r.show_title!==false,
     theme_mode:['auto','light','dark'].includes(r.theme_mode)?r.theme_mode:'auto',
     layout:['auto','1','2','4','custom'].includes(String(r.layout))?String(r.layout):'auto',
     custom_columns:Number.isInteger(Number(r.custom_columns)) ? Math.max(1,Math.min(12,Number(r.custom_columns))) : 3,
@@ -48,13 +53,20 @@ function cgConfig(raw={}) {
   };
 }
 function cgKnown(entity) {return !!entity && !['unknown','unavailable',''].includes(entity.state);}
-function cgImageUrl(entity) {
+function cgImageUrl(entity, bucket='') {
   if(!cgKnown(entity))return '';
   const url=entity?.attributes?.entity_picture;
   if(typeof url!=='string' || !url.startsWith('/') || url.startsWith('//') || url.includes('\\') || /[\x00-\x1f]/.test(url))return '';
   // Whitelist same-origin Home Assistant paths. Never accept external or javascript/data URLs.
-  const v=encodeURIComponent(String(entity.state).slice(0,100));
+  // `bucket` refreshes still images of camera entities (their state does not change with each frame).
+  const v=encodeURIComponent(String(entity.state).slice(0,100)+(bucket!==''?`-${String(bucket).slice(0,20)}`:''));
   return v?`${url}${url.includes('?')?'&':'?'}cg_v=${v}`:url;
+}
+// Smartphone = shortest side of the physical screen below 600 px (portrait and landscape).
+// The viewport alone is not reliable: some containers report a window wider than the real screen.
+function cgIsPhone(scr=(typeof window!=='undefined'?window.screen:null)) {
+  const w=Number(scr?.width),h=Number(scr?.height);
+  return Number.isFinite(w)&&Number.isFinite(h)&&w>0&&h>0&&Math.min(w,h)<600;
 }
 function cgTime(iso, now=Date.now()) {
   if(typeof iso!=='string')return null;
@@ -103,7 +115,7 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-preview{width:100%;aspect-ratio:16/10;border-radius:12px;background:var(--cg-circle);object-fit:cover;display:block}.cg-placeholder{border:1px dashed var(--cg-border);border-radius:12px;min-height:70px;display:flex;align-items:center;gap:9px;justify-content:center;color:var(--cg-muted);font-size:11px}
 .cg-open-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:var(--cg-accent);color:#fff;font-size:11px;font-weight:650;line-height:1.2}.cg-open-badge ha-icon{--mdc-icon-size:14px;width:14px;height:14px;color:#fff}
 .cg-meta{font-size:11.5px;color:var(--cg-muted);line-height:1.3;overflow-wrap:anywhere}.cg-info .cg-meta{display:block;margin-top:3px}.cg-empty{padding:12px;color:var(--cg-muted);font-size:12px}
-.cg-backdrop{position:fixed;inset:0;overscroll-behavior:contain;z-index:9999;background:#0009;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}.cg-dialog{width:min(390px,100%);max-height:min(88vh,680px);display:flex;flex-direction:column;background:var(--cg-bg);color:var(--cg-fg);border:1px solid var(--cg-border);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #0005}
+.cg-backdrop{position:fixed;inset:0;overscroll-behavior:contain;z-index:9999;background:#0009;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}.cg-dialog{width:min(390px,100%);height:min(calc(100vh - 40px),680px);height:min(calc(100dvh - 40px),680px);display:flex;flex-direction:column;background:var(--cg-bg);color:var(--cg-fg);border:1px solid var(--cg-border);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #0005}
 .cg-dialog-body{overflow-y:auto;overscroll-behavior:contain;padding:12px 18px 18px;min-width:0}
 .cg-dialog-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 12px 18px;background:var(--cg-bg);border-bottom:1px solid var(--cg-border)}.cg-dialog-head strong{flex:1;min-width:0;margin:0;font-size:17px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}.cg-icon-btn{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--cg-border);background:var(--cg-surface);color:var(--cg-fg);display:grid;place-items:center;padding:0}.cg-icon-btn ha-icon{--mdc-icon-size:20px;width:20px;height:20px}.cg-icon-btn:focus-visible{outline:2px solid var(--cg-accent);outline-offset:2px}
 .cg-snapshot-box{margin:12px 0;border-radius:17px;background:var(--cg-surface);padding:15px;text-align:center}.cg-snapshot-title{font-size:12px;font-weight:650;color:var(--cg-muted);margin-bottom:9px}.cg-snapshot{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:12px}
@@ -167,22 +179,44 @@ ha-icon{display:inline-flex;align-items:center;justify-content:center;vertical-a
 .cg-bat{display:inline-flex;align-items:center;gap:3px;flex:none;border-radius:999px;padding:3px 8px 3px 5px;background:var(--cg-amber-bg);color:var(--cg-amber);font-size:11px;font-weight:700}.cg-bat b{font-weight:700}.cg-bat ha-icon{width:14px;height:14px;--mdc-icon-size:14px;color:var(--cg-amber)}
 @container cg-cell (max-width:175px){.cg-root .cg-bat{padding:4px}.cg-root .cg-bat b{display:none}}
 
+/* Popup (standard v1.4): fixed height on every device, content scrolls inside the body, header stays still. */
+.cg-dialog.cg-compact{height:auto;max-height:min(88vh,680px)}
+.cg-dialog-body{flex:1 1 auto;min-height:0}
+.cg-pop-media,.cg-pop-info{min-width:0}
+.cg-pop-info>.cg-event:first-child{margin-top:0}
+.cg-snapshot-box{display:block}
+.cg-live-actions{display:flex;justify-content:center;margin-top:11px}
+.cg-live-btn{min-height:36px;justify-content:center}
+/* Tablet and desktop only (never smartphones: .cg-phone is set from the physical screen size): wide horizontal popup in columns. */
+@media(min-width:640px) and (min-height:600px){
+  .cg-backdrop:not(.cg-phone) .cg-dialog:not(.cg-compact){width:min(1120px,100%);height:min(80vh,560px);height:min(80dvh,560px)}
+  .cg-backdrop:not(.cg-phone) .cg-pop-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:14px;align-items:start}
+  .cg-backdrop:not(.cg-phone) .cg-pop-grid .cg-snapshot-box{margin:0}
+}
+/* Live video (native Home Assistant card projected through named slots). */
+.cg-live-box{position:relative;width:100%;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:var(--cg-circle)}
+.cg-live-box ::slotted(*){position:absolute;inset:0;display:block;width:100%;height:100%;overflow:hidden;border-radius:inherit;--ha-card-border-radius:0px;--ha-card-box-shadow:none;--ha-card-border-width:0px}
+.cg-cell .cg-live-box ::slotted(*){pointer-events:none}
+.cg-live-popup{width:min(100%,544px);margin:0 auto}
+.cg-live-badge{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:var(--cg-accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.6px;line-height:1.2;pointer-events:none}
+.cg-live-note{position:absolute;inset:0;display:grid;place-items:center;color:var(--cg-muted);font-size:11px;text-align:center;padding:8px}
+
 `;
 class CameraGridViewCard extends HTMLElement {
   static getStubConfig(){return cgConfig();}
   static getConfigElement(){return document.createElement(CG_EDITOR_TAG);}
   constructor(){
     super();this.attachShadow({mode:'open'});this._config=cgConfig();this._hass=null;this._opened=null;
-    this._busy=false;this._error='';this._confirmation=null;this._lastSignature='';this._movement=new Map();this._querying=new Set();this._autoTimer=null;this._autoOpened=false;this._autoCloseAt=0;this._autoLast=new Map();
+    this._busy=false;this._error='';this._confirmation=null;this._lastSignature='';this._movement=new Map();this._querying=new Set();this._autoTimer=null;this._autoOpened=false;this._autoCloseAt=0;this._autoLast=new Map();this._popupLive=false;this._liveEls=new Map();this._liveFail=false;
     this.shadowRoot.addEventListener('click',event=>this._click(event));
     this.shadowRoot.addEventListener('keydown',event=>{if(event.key==='Escape'&&this._opened!==null)this._close();});
     this._onAppearance=()=>this._paint();
     this._media=typeof window!=='undefined'&&typeof window.matchMedia==='function'?window.matchMedia('(prefers-color-scheme:dark)'):null;
   }
-  connectedCallback(){this._media?.addEventListener?.('change',this._onAppearance);this._paint();}
-  disconnectedCallback(){this._media?.removeEventListener?.('change',this._onAppearance);this._clearAuto();}
-  setConfig(raw){this._clearAuto();this._config=cgConfig(raw);this._opened=null;this._confirmation=null;this._movement.clear();this._lastSignature='';this._paint();}
-  set hass(hass){const prev=this._hass;this._hass=hass;this._detect(prev,hass);this._paint();}
+  connectedCallback(){this._media?.addEventListener?.('change',this._onAppearance);this._paint();this._syncLive();}
+  disconnectedCallback(){this._media?.removeEventListener?.('change',this._onAppearance);this._clearAuto();this._stopLive();}
+  setConfig(raw){this._clearAuto();this._config=cgConfig(raw);this._opened=null;this._popupLive=false;this._liveFail=false;this._confirmation=null;this._movement.clear();this._lastSignature='';this._paint();}
+  set hass(hass){const prev=this._hass;this._hass=hass;this._detect(prev,hass);for(const w of this._liveEls.values()){if(w.card)w.card.hass=hass;}this._paint();}
   getCardSize(){return Math.max(2,Math.ceil(this._config.cameras.length/2)*2+1);}
   _clearAuto(){clearTimeout(this._autoTimer);this._autoTimer=null;this._autoOpened=false;this._autoCloseAt=0;}
   _detect(prev,hass){
@@ -202,7 +236,7 @@ class CameraGridViewCard extends HTMLElement {
     // Never interrupt a popup opened by the user or a pending command confirmation.
     if((this._opened!==null&&!this._autoOpened)||this._confirmation||this._busy)return;
     this._clearAuto();
-    this._opened=hit;this._error='';this._lastSignature='';this._autoOpened=true;
+    this._opened=hit;this._popupLive=false;this._error='';this._lastSignature='';this._autoOpened=true;
     const ms=cfg.auto_popup_seconds*1000;this._autoCloseAt=now+ms;
     this._autoTimer=setTimeout(()=>{if(this._autoOpened&&this._opened===hit&&!this._confirmation&&!this._busy)this._close();else this._clearAuto();},ms);
     this._loadMovement(cfg.cameras[hit]);
@@ -216,11 +250,20 @@ class CameraGridViewCard extends HTMLElement {
     if(cgBoolState(motion)===true&&cgTime(motion.last_changed))return motion.last_changed;
     return this._movement.get(c.motion_entity)||null;
   }
+  _name(c,i){return c.name||this._state(c.image_entity)?.attributes?.friendly_name||this._state(c.camera_entity)?.attributes?.friendly_name||`Telecamera ${i+1}`;}
+  // Still image: the event snapshot (image.*) when configured, otherwise the camera entity picture, refreshed every minute.
+  _still(c){
+    if(c.image_entity)return cgImageUrl(this._state(c.image_entity));
+    if(c.camera_entity)return cgImageUrl(this._state(c.camera_entity),Math.floor(Date.now()/60000));
+    return '';
+  }
+  _liveNote(){return `<div class="cg-live-note">${this._liveFail?'Live non disponibile':'Avvio live…'}</div>`;}
   _row(c,i){
-    const title=c.name||this._state(c.image_entity)?.attributes?.friendly_name||`Telecamera ${i+1}`;
-    // Dashboard privacy: no image element or image URL when the preview is disabled.
-    const image=c.show_preview?cgImageUrl(this._state(c.image_entity)):'';
-    const visual=c.show_preview?(image?`<img class="cg-preview" alt="Ultima immagine: ${cgEsc(title)}" src="${cgEsc(image)}" loading="lazy"/>`:'<div class="cg-placeholder">'+cgIcon('image-off-outline')+'Immagine non disponibile</div>'):'';
+    const title=this._name(c,i);
+    // Dashboard privacy: no image element, stream or image URL when the preview is disabled.
+    const image=c.show_preview?this._still(c):'';
+    const liveTile=c.show_preview&&c.live_preview&&!!c.camera_entity;
+    const visual=liveTile?`<div class="cg-live-box" aria-label="Live: ${cgEsc(title)}"><span class="cg-live-badge">LIVE</span><slot name="cg-live-tile-${i}">${this._liveNote()}</slot></div>`:c.show_preview?(image?`<img class="cg-preview" alt="Ultima immagine: ${cgEsc(title)}" src="${cgEsc(image)}" loading="lazy"/>`:'<div class="cg-placeholder">'+cgIcon('image-off-outline')+'Immagine non disponibile</div>'):'';
     const last=cgTime(this._lastEvent(c));
     const mot=this._state(c.motion_entity);const motionOn=cgBoolState(mot)===true;
     const bs=this._state(c.battery_entity);const bn=Number(bs?.state);
@@ -234,21 +277,30 @@ class CameraGridViewCard extends HTMLElement {
   }
   _popup(index){
     const c=this._config.cameras[index];if(!c)return '';
-    const title=c.name||this._state(c.image_entity)?.attributes?.friendly_name||`Telecamera ${index+1}`;
+    const title=this._name(c,index);
+    const phone=cgIsPhone();
     const head=`<div class="cg-dialog-head"><strong>${cgEsc(title)}</strong><button class="cg-icon-btn" type="button" data-close="1" aria-label="Chiudi">${cgIcon('close')}</button></div>`;
     if(this._confirmation){
       const confirm=this._confirmation;
       const label=confirm.kind==='audio'?'audio':'registrazione';
       const verb=confirm.expected?'disattivare':'attivare';
-      return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Conferma ${label}">${head}<div class="cg-dialog-body"><div class="cg-dialog-text">Vuoi ${verb} ${label} per ${cgEsc(title)}?</div><div class="cg-dialog-buttons"><button type="button" class="cg-btn" data-cancel="1">Annulla</button><button type="button" class="cg-wide" data-confirm="1" ${this._busy?'disabled':''}>Conferma</button></div>${this._error?`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`:''}</div></div></div>`;
+      return `<div class="cg-backdrop${phone?' cg-phone':''}" data-backdrop="1"><div class="cg-dialog cg-compact" role="dialog" aria-modal="true" aria-label="Conferma ${label}">${head}<div class="cg-dialog-body"><div class="cg-dialog-text">Vuoi ${verb} ${label} per ${cgEsc(title)}?</div><div class="cg-dialog-buttons"><button type="button" class="cg-btn" data-cancel="1">Annulla</button><button type="button" class="cg-wide" data-confirm="1" ${this._busy?'disabled':''}>Conferma</button></div>${this._error?`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`:''}</div></div></div>`;
     }
-    const url=cgImageUrl(this._state(c.image_entity));
+    const url=this._still(c);
     const last=cgTime(this._lastEvent(c));
     const bat=this._state(c.battery_entity);const n=Number(bat?.state);
     const battery=c.battery_entity&&cgKnown(bat)&&Number.isFinite(n)&&n>=0&&n<=100?Math.round(n):null;
+    // Live video starts only on an explicit tap and stops when the popup closes.
+    const hasCam=!!c.camera_entity;
+    const liveOn=hasCam&&this._popupLive;
+    const camKnown=cgKnown(this._state(c.camera_entity));
+    const liveBtn=hasCam?`<button type="button" class="cg-btn cg-live-btn" data-live="${liveOn?'stop':'start'}" ${camKnown?'':'disabled'}>${cgIcon(liveOn?'stop-circle-outline':'video')}${liveOn?'Ferma live':'Avvia live'}</button>`:'';
+    const still=url?`<img class="cg-snapshot" src="${cgEsc(url)}" alt="${c.image_entity?'Ultima immagine rilevata':'Immagine telecamera'}: ${cgEsc(title)}"/>`:'<div class="cg-placeholder">Immagine non disponibile. Configura un’entità image.* o camera.*</div>';
+    const media=liveOn?`<div class="cg-live-box cg-live-popup" aria-label="Live: ${cgEsc(title)}"><span class="cg-live-badge">LIVE</span><slot name="cg-live-popup">${this._liveNote()}</slot></div>`:still;
     let content='';
-    content+=`<div class="cg-snapshot-box"><div class="cg-snapshot-title">Ultima immagine rilevata</div>${url?`<img class="cg-snapshot" src="${cgEsc(url)}" alt="Ultima immagine rilevata: ${cgEsc(title)}"/>`:'<div class="cg-placeholder">Immagine non disponibile. Configura un’entità image.*</div>'}</div>`;
-    content+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('motion-sensor')}</span><div class="cg-event-text"><strong>Ultimo movimento rilevato</strong><div class="cg-meta">${last?cgEsc(last.relative)+' · '+cgEsc(last.exact):'Non disponibile negli eventi recenti'}</div></div></div>`;
+    content+=`<div class="cg-snapshot-box"><div class="cg-snapshot-title">${liveOn?'Live':(c.image_entity||!hasCam)?'Ultima immagine rilevata':'Immagine telecamera'}</div>${media}${liveBtn?`<div class="cg-live-actions">${liveBtn}</div>`:''}</div>`;
+    let info='';
+    info+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('motion-sensor')}</span><div class="cg-event-text"><strong>Ultimo movimento rilevato</strong><div class="cg-meta">${last?cgEsc(last.relative)+' · '+cgEsc(last.exact):'Non disponibile negli eventi recenti'}</div></div></div>`;
     for(const kind of ['audio','recording']){
       if(!c[`${kind}_state_entity`]&&!c[`${kind}_control_entity`])continue;
       const state=this._status(c,kind);
@@ -257,17 +309,18 @@ class CameraGridViewCard extends HTMLElement {
       const authorized=this._config.controls_enabled&&c[`${kind}_control_enabled`]&&!!control&&switchState!==null;
       const label=state===true?(kind==='audio'?'Attivo':'In registrazione'):state===false?(kind==='audio'?'Disattivo':'Non in registrazione'):'Non disponibile';
       const action=authorized?`<button type="button" class="cg-btn" data-request="${kind}:${index}" ${this._busy?'disabled':''}>${switchState?'Disattiva':'Attiva'}</button>`:'';
-      content+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon(kind==='audio'?'microphone':'cctv')}</span><div class="cg-event-text"><strong>${kind==='audio'?'Audio':'Stato registrazione'}</strong><div class="cg-meta">${label}</div></div>${action}</div>`;
+      info+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon(kind==='audio'?'microphone':'cctv')}</span><div class="cg-event-text"><strong>${kind==='audio'?'Audio':'Stato registrazione'}</strong><div class="cg-meta">${label}</div></div>${action}</div>`;
     }
-    if(c.battery_entity&&battery!==null)content+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('battery')}</span><div class="cg-event-text"><strong>Batteria</strong><div class="cg-meta">${battery}%</div></div></div>`;
-    if(c.image_entity)content+=`<button type="button" class="cg-wide" data-more="${cgEsc(c.image_entity)}">${cgIcon('arrow-expand')}Apri dettagli immagine</button>`;
-    if(this._error)content+=`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`;
-    return `<div class="cg-backdrop" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Dettaglio ${cgEsc(title)}">${head}<div class="cg-dialog-body">${content}</div></div></div>`;
+    if(c.battery_entity&&battery!==null)info+=`<div class="cg-event"><span class="cg-event-icon">${cgIcon('battery')}</span><div class="cg-event-text"><strong>Batteria</strong><div class="cg-meta">${battery}%</div></div></div>`;
+    const moreId=c.image_entity||c.camera_entity;
+    if(moreId)info+=`<button type="button" class="cg-wide" data-more="${cgEsc(moreId)}">${cgIcon('arrow-expand')}${c.image_entity?'Apri dettagli immagine':'Apri dettagli telecamera'}</button>`;
+    if(this._error)info+=`<div class="cg-error" role="alert">${cgEsc(this._error)}</div>`;
+    return `<div class="cg-backdrop${phone?' cg-phone':''}" data-backdrop="1"><div class="cg-dialog" role="dialog" aria-modal="true" aria-label="Dettaglio ${cgEsc(title)}">${head}<div class="cg-dialog-body"><div class="cg-pop-grid"><div class="cg-pop-media">${content}</div><div class="cg-pop-info">${info}</div></div></div></div></div>`;
   }
   _signature(){
     const ids=this._config.cameras.flatMap(c=>Object.keys(CG_DOMAINS).map(k=>c[k]).filter(Boolean));
     const rows=[...new Set(ids)].map(id=>{const e=this._state(id);return [id,e?.state,e?.last_changed,e?.attributes?.entity_picture];});
-    return JSON.stringify([this._config,rows,this._opened,this._busy,this._error,this._confirmation,[...this._movement],this._isDark(),Math.floor(Date.now()/60000)]);
+    return JSON.stringify([this._config,rows,this._opened,this._busy,this._error,this._confirmation,[...this._movement],this._isDark(),Math.floor(Date.now()/60000),this._popupLive,this._liveFail]);
   }
   _paint(){
     if(!this.shadowRoot||!this.isConnected)return;
@@ -277,14 +330,49 @@ class CameraGridViewCard extends HTMLElement {
     const recent=cfg.cameras.filter(c=>{const t=cgTime(this._lastEvent(c),nowMs);return !!t&&nowMs-t.ms<3600000;}).length;
     const nCam=cfg.cameras.length;
     const chips=nCam?`<div class="cg-chips"><span class="cg-chip">${cgIcon('cctv')}${nCam} ${nCam===1?'telecamera':'telecamere'}</span>${recent?`<span class="cg-chip on" title="Ultimo movimento entro 1 ora">${cgIcon('motion-sensor')}${recent} con movimento recente</span>`:''}</div>`:'';
+    // Label and title can be switched off; the camera-count chips stay visible.
+    const headText=(cfg.show_eyebrow?`<div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div>`:'')+(cfg.show_title?`<div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div>`:'');
+    const headHtml=headText||chips?`<div class="cg-head">${headText?`<div>${headText}</div>`:''}${chips}</div>`:'';
     const columns=cfg.layout==='auto'?2:cfg.layout==='1'?1:cfg.layout==='2'?2:cfg.layout==='4'?2:cfg.custom_columns;
     const bodyTop=this.shadowRoot.querySelector?.('.cg-dialog-body')?.scrollTop||0;
-    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}"><div class="cg-head"><div><div class="cg-eyebrow">${cgEsc(cfg.eyebrow)}</div><div class="cg-title">${cgEsc(cfg.title)}<b>.</b></div></div>${chips}</div>${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div>`;
+    this.shadowRoot.innerHTML=`<style>${CG_STYLE}</style><div class="cg-root ${this._isDark()?'cg-dark':'cg-light'}" style="--cg-cols:${columns};--cg-narrow-cols:${cfg.layout==='1'?1:2}">${headHtml}${cfg.cameras.length?`<div class="cg-grid-host"><div class="cg-grid">${cfg.cameras.map((c,i)=>this._row(c,i)).join('')}</div></div>`:'<div class="cg-empty">Aggiungi una telecamera dall’editor grafico della card.</div>'}${this._opened!==null?this._popup(this._opened):''}</div>`;
     if(bodyTop){const b=this.shadowRoot.querySelector('.cg-dialog-body');if(b)b.scrollTop=bodyTop;}
     // Keep keyboard focus inside the popup (on the close button) so Escape works; never move focus if it is already on a popup control.
     if(this._opened!==null&&!this.shadowRoot.activeElement){const x=this.shadowRoot.querySelector('[data-close]');x?.focus?.({preventScroll:true});}
+    this._syncLive();
   }
-  _close(){this._clearAuto();this._opened=null;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
+  // Live video is rendered by the native Home Assistant card (picture-entity, camera_view: live).
+  // The native element lives in the light DOM and is projected into the shadow DOM through named slots,
+  // so repainting the card never restarts a running stream.
+  _liveKeys(){
+    const keys=new Map();
+    this._config.cameras.forEach((c,i)=>{if(c.show_preview&&c.live_preview&&c.camera_entity)keys.set(`tile-${i}`,c.camera_entity);});
+    if(this._opened!==null&&this._popupLive&&!this._confirmation){const c=this._config.cameras[this._opened];if(c?.camera_entity)keys.set('popup',c.camera_entity);}
+    return keys;
+  }
+  _syncLive(){
+    if(typeof document==='undefined'||typeof this.appendChild!=='function'||!this.isConnected)return;
+    const want=this._liveKeys();
+    for(const [key,w] of [...this._liveEls]){if(want.get(key)!==w.entity){w.node.remove();this._liveEls.delete(key);}}
+    for(const [key,entity] of want){if(!this._liveEls.has(key))this._mountLive(key,entity);}
+  }
+  _mountLive(key,entity){
+    const node=document.createElement('div');node.slot=`cg-live-${key}`;node.className='cg-live-wrap';
+    const w={entity,node,card:null};this._liveEls.set(key,w);this.appendChild(node);
+    (async()=>{
+      try{
+        const helpers=await window.loadCardHelpers?.();
+        if(typeof helpers?.createCardElement!=='function')throw new Error('card helpers unavailable');
+        const card=await helpers.createCardElement({type:'picture-entity',entity,camera_view:'live',show_name:false,show_state:false,tap_action:{action:'none'},hold_action:{action:'none'}});
+        if(this._liveEls.get(key)!==w)return; // stopped meanwhile
+        card.hass=this._hass;w.card=card;node.appendChild(card);
+      }catch{
+        if(this._liveEls.get(key)===w){this._liveFail=true;this._lastSignature='';this._paint();}
+      }
+    })();
+  }
+  _stopLive(){for(const w of this._liveEls.values())w.node.remove();this._liveEls.clear();}
+  _close(){this._clearAuto();this._opened=null;this._popupLive=false;this._confirmation=null;this._error='';this._lastSignature='';this._paint();}
   async _loadMovement(c){
     if(!c.motion_entity||c.last_event_entity||this._querying.has(c.motion_entity)||typeof this._hass?.callApi!=='function')return;
     this._querying.add(c.motion_entity);
@@ -328,9 +416,10 @@ class CameraGridViewCard extends HTMLElement {
       if(!cam||cam[`${p.kind}_control_entity`]!==p.entity_id){this._confirmation=null;this._lastSignature='';this._paint();return;}
       this._performControl(p.kind,p.index,p.expected);return;
     }
+    const live=event.target.closest('[data-live]');if(live){if(this._opened===null)return;this._popupLive=live.dataset.live==='start';this._liveFail=false;this._lastSignature='';this._paint();return;}
     const more=event.target.closest('[data-more]');if(more){const id=more.dataset.more;this._close();this.dispatchEvent(new CustomEvent('hass-more-info',{detail:{entityId:id},bubbles:true,composed:true}));return;}
     const request=event.target.closest('[data-request]');if(request){const [kind,idx]=request.dataset.request.split(':');if(['audio','recording'].includes(kind))this._requestControl(kind,Number(idx));return;}
-    const btn=event.target.closest('[data-open]');if(btn){const idx=Number(btn.dataset.open);if(!this._config.cameras[idx])return;this._opened=idx;this._confirmation=null;this._error='';this._lastSignature='';this._paint();this._loadMovement(this._config.cameras[idx]);}
+    const btn=event.target.closest('[data-open]');if(btn){const idx=Number(btn.dataset.open);if(!this._config.cameras[idx])return;this._opened=idx;this._popupLive=false;this._confirmation=null;this._error='';this._lastSignature='';this._paint();this._loadMovement(this._config.cameras[idx]);}
   }
 
 }
@@ -419,9 +508,11 @@ class CameraGridViewCardEditor extends HTMLElement {
       this._check(index,'recording_control_enabled','Consenti controllo registrazione per questa telecamera','Richiede anche Abilita i comandi reali in Avanzate.')+
       this._entityField(index,'battery_entity','Batteria (facoltativa)');
     return `<section class="cg-camera-group"><div class="cg-camera-head"><strong>${cgEsc(cam.name||`Telecamera ${index+1}`)}</strong><div class="cg-controls"><button type="button" class="cg-action" data-move="${index}:-1" aria-label="Sposta su" ${index===0?'disabled':''}>↑</button><button type="button" class="cg-action" data-move="${index}:1" aria-label="Sposta giù" ${index===this._config.cameras.length-1?'disabled':''}>↓</button><button type="button" class="cg-clear" data-delete="${index}" aria-label="Rimuovi telecamera">${cgIcon('close')}</button></div></div>`+
-      this._entityField(index,'image_entity','Ultima immagine rilevata (image.*)')+
+      this._entityField(index,'camera_entity','Telecamera live (camera.*)','Facoltativa. Funziona con qualsiasi telecamera di Home Assistant e abilita il live nel popup.')+
+      this._entityField(index,'image_entity','Ultima immagine rilevata (image.*)','Facoltativa se è configurata una telecamera live.')+
       this._input(index,'name','Nome visualizzato',cam.name)+
       this._check(index,'show_preview','Mostra ultima immagine nella dashboard','Disattivata di default per privacy. Il popup resta disponibile.')+
+      this._check(index,'live_preview','Mostra il live nell’anteprima della dashboard','Richiede una telecamera live e Mostra ultima immagine nella dashboard. Avvia un flusso video per ogni telecamera: usalo con parsimonia.')+
       this._check(index,'auto_popup','Apri il popup a una nuova immagine rilevata','Richiede anche l’opzione generale in Avanzate. Funziona solo con la dashboard aperta.')+
       this._more(`camera-${index}`,extra)+'</section>';
   }
@@ -444,7 +535,8 @@ class CameraGridViewCardEditor extends HTMLElement {
       const layout=`<select class="cg-input" data-scope="global" data-key="layout">${options.map(([val,label])=>`<option value="${val}" ${c.layout===val?'selected':''}>${label}</option>`).join('')}</select>`;
       const themes=`<select class="cg-input" data-scope="global" data-key="theme_mode">${[['auto','Auto (Home Assistant)'],['light','Light Edera'],['dark','Dark Edera']].map(([val,label])=>`<option value="${val}" ${c.theme_mode===val?'selected':''}>${label}</option>`).join('')}</select>`;
       body='<div class="cg-heading">Aspetto Edera</div><div class="cg-desc">Tema, tipografia e disposizione delle telecamere, coerenti con Security Panel Card.</div>'+
-        this._input('global','eyebrow','Intestazione superiore',c.eyebrow)+this._input('global','title','Titolo',c.title)+
+        this._check('global','show_eyebrow','Mostra intestazione superiore')+(c.show_eyebrow?this._input('global','eyebrow','Intestazione superiore',c.eyebrow):'')+
+        this._check('global','show_title','Mostra titolo')+(c.show_title?this._input('global','title','Titolo',c.title):'')+
         this._field('Tema',themes)+this._field('Layout',layout)+
         (c.layout==='custom'?this._field('Numero colonne (1–12)',`<input class="cg-input" type="number" min="1" max="12" data-scope="global" data-key="custom_columns" value="${c.custom_columns}"/>`):'');
     }
@@ -498,6 +590,6 @@ if(typeof customElements!=='undefined'){
 }
 if(typeof window!=='undefined'){
   window.customCards=window.customCards||[];
-  if(!window.customCards.some(c=>c.type===CG_TAG))window.customCards.push({type:CG_TAG,name:'Camera Grid View Card',description:'Galleria Edera con popup snapshot, audio e anteprime privacy-first.',preview:true});
+  if(!window.customCards.some(c=>c.type===CG_TAG))window.customCards.push({type:CG_TAG,name:'Camera Grid View Card',description:'Galleria Edera con popup snapshot, live, audio e anteprime privacy-first.',preview:true});
 }
-export {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState};
+export {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState,cgIsPhone};

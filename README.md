@@ -11,7 +11,7 @@
 
 It brings together multiple cameras in a compact, responsive grid with dedicated detail views, image snapshots, motion information, and optional audio, recording, and battery status.
 
-The card uses entities and services already available in Home Assistant. It does not independently start live video streams or record video or audio.
+The card uses entities and services already available in Home Assistant. Optional live view is displayed by the native Home Assistant camera card and starts only on your action or on the cameras where you enable it. The card does not record video or audio.
 
 ## Preview
 
@@ -19,17 +19,21 @@ The card uses entities and services already available in Home Assistant. It does
 
 ![Camera Grid View Card — Edera Dark dashboard preview](assets/camera-grid-view-card-dark.png)
 
-![Camera Grid View Card — details popup in Edera Light mode](assets/camera-grid-view-card-popup-light.png)
+![Camera Grid View Card — details popup in Edera Light mode on a smartphone](assets/camera-grid-view-card-popup-light.png)
 
-*Camera Grid View Card interface shown with demo data. Displayed information depends on the configured Home Assistant entities and integrations.*
+![Camera Grid View Card — details popup in Edera Dark mode on a tablet or desktop](assets/camera-grid-view-card-popup-wide-dark.png)
+
+*Camera Grid View Card interface shown with demo data. Displayed information depends on the configured Home Assistant entities and integrations. The live area is illustrated with a generic demo frame.*
 
 ## Features
 
 - **Flexible camera grid:** Layouts for one, two, or four cameras, plus configurable custom columns, without a fixed limit on the number of configured cameras.
+- **Any camera:** Use a `camera.*` entity from any integration, an `image.*` entity, or both.
 - **Optional image previews:** Show the latest camera image directly in the dashboard. Previews are disabled by default.
+- **Optional live view:** Start a live view from the details popup with one tap, or show it directly in the dashboard preview of selected cameras. Disabled by default.
 - **Camera details:** Each tile includes a **Dettagli e stato** button and opens a dedicated details popup.
 - **Optional automatic popup:** Opens the latest detected image when a configured `image.*` entity updates, then closes automatically after a configurable time. Works only while the dashboard is open and visible. Disabled by default.
-- **Image snapshots:** Display the latest available image from a compatible `image.*` entity.
+- **Image snapshots:** Display the latest available image from a compatible `image.*` or `camera.*` entity.
 - **Motion information:** Show the most recent available movement using configured sensors, event timestamps, and Home Assistant Recorder history when available.
 - **Optional audio status:** Display the audio state supplied by a compatible entity.
 - **Optional audio controls:** Enable or disable audio using a supported control entity, with explicit confirmation.
@@ -37,8 +41,8 @@ The card uses entities and services already available in Home Assistant. It does
 - **Optional recording controls:** Control supported recording functions using a compatible entity, with explicit confirmation.
 - **Optional battery information:** Show battery percentage when a valid value is available.
 - **Visual configuration:** Configure individual cameras and settings through the Home Assistant dashboard editor.
-- **Edera appearance:** Automatic, Light, and Dark themes with Home Assistant Material Design Icons.
-- **Responsive layout:** A responsive interface for desktop, smartphone, and tablet dashboards.
+- **Edera appearance:** Automatic, Light, and Dark themes with Home Assistant Material Design Icons. The header label and the title can each be shown or hidden.
+- **Responsive layout:** A responsive interface for desktop, smartphone, and tablet dashboards, with a fixed-height details popup that adapts to the device: single column on smartphones, wide two-column layout on tablets and desktops.
 
 Available information and controls depend on the capabilities of the configured devices and integrations.
 
@@ -97,8 +101,8 @@ Open a dashboard in edit mode, add **Camera Grid View Card**, and configure the 
 
 The editor includes three main sections:
 
-- **Cameras:** Add cameras, assign names, select image entities, configure previews, and set optional status and control entities.
-- **Appearance:** Customize the title, header label, theme, and camera grid layout.
+- **Cameras:** Add cameras, assign names, select camera or image entities, configure previews and live view, and set optional status and control entities.
+- **Appearance:** Show or hide and customize the header label and title, and choose the theme and camera grid layout.
 - **Advanced:** Enable optional device controls and the automatic popup when needed.
 
 Optional entities can be left unconfigured.
@@ -108,6 +112,14 @@ Audio and recording controls require compatible `switch.*` or `input_boolean.*` 
 State-only sensors cannot directly control devices.
 
 Controls must be enabled globally and individually for each relevant camera. Each supported action requires explicit confirmation before sending a command to Home Assistant.
+
+### Live view
+
+To use live view, select a `camera.*` entity for the camera. Opening the details popup then shows a live button: the video starts only when you tap it and stops when the popup is closed.
+
+To show the live video directly in the dashboard tile, enable **Show live in the dashboard preview** for that camera. It requires the camera entity and the image preview to be enabled. Each live tile opens its own video stream, so enable it only on the cameras where you need it.
+
+The video is displayed by the native Home Assistant camera card, using the permissions of the logged-in user. Playback depends on the camera integration and on the streaming capabilities of your Home Assistant installation. The card does not start, record, or store video by itself.
 
 ### Automatic popup
 
@@ -133,8 +145,9 @@ cameras:
     motion_entity: binary_sensor.movimento_ingresso_demo
     show_preview: false
   - name: Giardino
-    image_entity: image.giardino_demo
+    camera_entity: camera.giardino_demo
     show_preview: true
+    live_preview: true
 ```
 
 Replace the example entities with existing entities in your Home Assistant installation.
@@ -145,6 +158,8 @@ Replace the example entities with existing entities in your Home Assistant insta
 |---|---|
 | `title` | Main card title. |
 | `eyebrow` | Small header label above the title. |
+| `show_eyebrow` | Shows the header label. Enabled by default. |
+| `show_title` | Shows the title. Enabled by default. |
 | `theme_mode` | `auto`, `light`, or `dark`. |
 | `layout` | `auto`, `1`, `2`, `4`, or `custom`. |
 | `custom_columns` | Number of columns for a custom layout. |
@@ -158,8 +173,10 @@ Replace the example entities with existing entities in your Home Assistant insta
 | Option | Description |
 |---|---|
 | `name` | Display name of the camera. |
+| `camera_entity` | Optional camera entity (`camera.*`), used for live view and as image source when no `image.*` entity is set. |
 | `image_entity` | Compatible image entity (`image.*`). |
 | `show_preview` | Displays the camera image in the dashboard. Disabled by default. |
+| `live_preview` | Shows the live video in the dashboard tile. Requires `camera_entity` and `show_preview`. Disabled by default. |
 | `auto_popup` | Opens the automatic popup for this camera when its image updates. Disabled by default. |
 | `motion_entity` | Optional motion sensor (`binary_sensor.*`). |
 | `last_event_entity` | Optional event timestamp entity. |
@@ -177,10 +194,11 @@ Camera Grid View Card requires:
 
 - Home Assistant with support for custom JavaScript dashboard modules.
 - Compatible Home Assistant entities for the desired camera features.
-- A configured `image.*` entity for displaying image snapshots.
+- An `image.*` or `camera.*` entity for each camera, for displaying image snapshots.
 
 Optional:
 
+- A camera entity (`camera.*`) that supports live streaming in Home Assistant, for live view.
 - Motion sensors and event timestamps.
 - Audio and recording status entities.
 - Compatible audio and recording control entities.
@@ -197,9 +215,11 @@ Some camera devices and integrations may depend on their own external services.
 
 Camera Grid View Card uses entities, data, and permissions already available through Home Assistant.
 
-Image previews are disabled by default. When a preview is disabled, the dashboard tile does not request or render the camera image.
+Image previews are disabled by default. When a preview is disabled, the dashboard tile does not request or render the camera image or video.
 
-Opening a camera details popup may display the latest image provided by the configured Home Assistant entity.
+Live view is disabled by default. A video stream starts only when you tap the live button in the popup, or on cameras where you enabled the live preview in the dashboard. The popup stream stops when the popup is closed.
+
+Opening a camera details popup may display the latest image provided by the configured image or camera entity.
 
 Camera images are loaded from Home Assistant-relative URLs rather than arbitrary external image URLs.
 

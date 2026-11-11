@@ -10,7 +10,7 @@ globalThis.HTMLElement=StubElement;
 const definitions=new Map();
 globalThis.customElements={get:n=>definitions.get(n),define:(n,c)=>definitions.set(n,c)};
 globalThis.window={customCards:[]};
-const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState}=await import('../src/camera-grid-view-card.js');
+const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState,cgIsPhone}=await import('../src/camera-grid-view-card.js');
 const Card=definitions.get('camera-grid-view-card');
 
 test('defaults protect privacy and disallow real commands',()=>{
@@ -360,4 +360,92 @@ test('opening the popup moves focus to the close button so Escape works',()=>{
   sr.querySelector=s=>s==='[data-close]'?{focus(){focused++;}}:q.call(sr,s);
   card._opened=0;card._lastSignature='';card._paint();
   assert.equal(focused,1);
+});
+
+test('title and label are shown by default and can be switched off independently',()=>{
+  const c=cgConfig({});assert.equal(c.show_eyebrow,true);assert.equal(c.show_title,true);
+  const card=new Card();card.setConfig({show_eyebrow:false,cameras:[{name:'A',image_entity:'image.a'}]});
+  let html=card.shadowRoot.innerHTML;
+  assert.doesNotMatch(html,/class="cg-eyebrow"/);assert.match(html,/class="cg-title">Telecamere<b>\.<\/b>/);
+  card.setConfig({show_title:false,cameras:[{name:'A',image_entity:'image.a'}]});
+  html=card.shadowRoot.innerHTML;
+  assert.match(html,/class="cg-eyebrow"/);assert.doesNotMatch(html,/class="cg-title"/);
+  card.setConfig({show_eyebrow:false,show_title:false,cameras:[]});
+  assert.doesNotMatch(card.shadowRoot.innerHTML,/class="cg-head"/);
+});
+
+test('camera_entity accepts only camera.* and live_preview is off by default',()=>{
+  const c=cgConfig({cameras:[{camera_entity:'camera.ingresso'},{camera_entity:'image.x'},{camera_entity:'https://example.com'}]});
+  assert.equal(c.cameras[0].camera_entity,'camera.ingresso');assert.equal(c.cameras[1].camera_entity,'');assert.equal(c.cameras[2].camera_entity,'');
+  assert.equal(c.cameras[0].live_preview,false);
+});
+
+test('a camera.* entity alone is enough: name, still image and details come from it',()=>{
+  const card=new Card();card.setConfig({cameras:[{camera_entity:'camera.giardino',show_preview:true}]});
+  card.hass={states:{'camera.giardino':{state:'idle',attributes:{friendly_name:'Giardino',entity_picture:'/api/camera_proxy/camera.giardino?token=abc'}}}};
+  let html=card.shadowRoot.innerHTML;
+  assert.match(html,/class="cg-name">Giardino</);assert.match(html,/<img class="cg-preview"[^>]*src="\/api\/camera_proxy\/camera\.giardino\?token=abc&amp;cg_v=idle-\d+"/);
+  assert.doesNotMatch(html,/<slot name="cg-live-tile-0">/);
+  card._opened=0;card._lastSignature='';card._paint();html=card.shadowRoot.innerHTML;
+  assert.match(html,/data-live="start"/);assert.match(html,/data-more="camera\.giardino"/);
+});
+
+test('existing image.* configurations are unchanged (no live controls, same snapshot URL)',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'Porta',image_entity:'image.porta',show_preview:true}]});
+  card.hass={states:{'image.porta':{state:'2026-10-18',attributes:{entity_picture:'/api/image_proxy/image.porta'}}}};
+  card._opened=0;card._lastSignature='';card._paint();const html=card.shadowRoot.innerHTML;
+  assert.doesNotMatch(html,/data-live=/);assert.match(html,/data-more="image\.porta"/);assert.match(html,/cg_v=2026-10-18"/);
+});
+
+test('live never appears in the dashboard unless preview and live_preview are both on',()=>{
+  const states={'camera.a':{state:'idle',attributes:{entity_picture:'/api/camera_proxy/camera.a?token=t'}}};
+  for(const cam of [{show_preview:false,live_preview:true},{show_preview:true,live_preview:false}]){
+    const card=new Card();card.setConfig({cameras:[{name:'A',camera_entity:'camera.a',...cam}]});card.hass={states};
+    assert.doesNotMatch(card.shadowRoot.innerHTML,/class="cg-live-box/);
+    assert.equal(card._liveKeys().size,0);
+  }
+  const card=new Card();card.setConfig({cameras:[{name:'A',camera_entity:'camera.a',show_preview:true,live_preview:true}]});card.hass={states};
+  assert.match(card.shadowRoot.innerHTML,/<slot name="cg-live-tile-0">/);assert.deepEqual([...card._liveKeys()],[['tile-0','camera.a']]);
+});
+
+test('popup live starts only on tap and stops when the popup closes',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'A',camera_entity:'camera.a'}]});
+  card.hass={states:{'camera.a':{state:'idle',attributes:{entity_picture:'/api/camera_proxy/camera.a?token=t'}}}};
+  card._opened=0;card._lastSignature='';card._paint();
+  assert.equal(card._liveKeys().size,0);assert.doesNotMatch(card.shadowRoot.innerHTML,/<slot name="cg-live-popup">/);
+  card._popupLive=true;card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML,/<slot name="cg-live-popup">/);assert.match(card.shadowRoot.innerHTML,/data-live="stop"/);
+  assert.deepEqual([...card._liveKeys()],[['popup','camera.a']]);
+  card._close();assert.equal(card._popupLive,false);assert.equal(card._liveKeys().size,0);
+});
+
+test('popup has a fixed height (not max-height) with vh fallback, on every device',()=>{
+  const card=new Card();card.setConfig({cameras:[{name:'A',image_entity:'image.a'}]});card._opened=0;card._lastSignature='';card._paint();
+  const html=card.shadowRoot.innerHTML;
+  assert.match(html,/\.cg-dialog\{width:min\(390px,100%\);height:min\(calc\(100vh - 40px\),680px\);height:min\(calc\(100dvh - 40px\),680px\)/);
+  assert.match(html,/@media\(min-width:640px\) and \(min-height:600px\)\{[^@]*\.cg-backdrop:not\(\.cg-phone\) \.cg-dialog:not\(\.cg-compact\)\{width:min\(1120px,100%\);height:min\(80vh,560px\);height:min\(80dvh,560px\)\}/);
+  assert.match(html,/grid-template-columns:minmax\(0,1\.6fr\) minmax\(260px,1fr\)/);
+  assert.match(html,/\.cg-dialog\.cg-compact\{height:auto/);
+  assert.match(html,/<div class="cg-dialog-body"><div class="cg-pop-grid"><div class="cg-pop-media">/);
+});
+
+test('smartphone detection uses the physical screen (shortest side below 600 px), not the viewport',()=>{
+  assert.equal(cgIsPhone({width:390,height:844}),true);
+  assert.equal(cgIsPhone({width:844,height:390}),true);   // phone in landscape
+  assert.equal(cgIsPhone({width:768,height:1024}),false); // tablet
+  assert.equal(cgIsPhone({width:1920,height:1080}),false);
+  assert.equal(cgIsPhone(null),false);
+  globalThis.window.screen={width:390,height:844};
+  const card=new Card();card.setConfig({cameras:[{name:'A',image_entity:'image.a'}]});card._opened=0;card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML,/<div class="cg-backdrop cg-phone"/);
+  globalThis.window.screen={width:1024,height:768};card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML,/<div class="cg-backdrop" data-backdrop/);
+  delete globalThis.window.screen;
+});
+
+test('confirmation dialogs stay compact (exempt from the fixed height)',()=>{
+  const card=new Card();card.setConfig({controls_enabled:true,cameras:[{name:'A',image_entity:'image.a',audio_control_entity:'switch.au',audio_control_enabled:true}]});
+  card.hass={states:{'switch.au':{state:'on',attributes:{}}}};
+  card._opened=0;card._confirmation={kind:'audio',index:0,entity_id:'switch.au',expected:true};card._lastSignature='';card._paint();
+  assert.match(card.shadowRoot.innerHTML,/class="cg-dialog cg-compact"/);
 });
