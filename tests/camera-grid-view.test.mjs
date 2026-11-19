@@ -10,7 +10,7 @@ globalThis.HTMLElement=StubElement;
 const definitions=new Map();
 globalThis.customElements={get:n=>definitions.get(n),define:(n,c)=>definitions.set(n,c)};
 globalThis.window={customCards:[]};
-const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState,cgIsPhone}=await import('../src/camera-grid-view-card.js');
+const {cgConfig,cgImageUrl,cgLatestMovement,cgTime,cgBoolState,cgIsPhone,cgT,cgPickLang,CG_TR,CG_LANGS,CG_DOMAINS}=await import('../src/camera-grid-view-card.js');
 const Card=definitions.get('camera-grid-view-card');
 
 test('defaults protect privacy and disallow real commands',()=>{
@@ -88,7 +88,7 @@ test('Edera title uses attached green punctuation, not a detached decorative dot
 });
 
 test('dashboard tile contains the Weather Pulse style Dettagli e stato button',()=>{
-  const card=new Card();card.setConfig({cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
+  const card=new Card();card.setConfig({language:'it',cameras:[{name:'Ingresso',image_entity:'image.ingresso'}]});
   assert.match(card.shadowRoot.innerHTML,/class="cg-open-badge">Dettagli e stato[\s\S]*mdi:chevron-right/);
   assert.match(card.shadowRoot.innerHTML,/\.cg-root \.cg-open-badge\{[^}]*border-radius:999px[^}]*color-mix\(in srgb,var\(--cg-accent\) 12%,transparent\)/);
 });
@@ -96,9 +96,9 @@ test('dashboard tile contains the Weather Pulse style Dettagli e stato button',(
 test('editor has Security Panel style tabs and vertical fields',()=>{
   const source=readFileSync(new URL('../src/camera-grid-view-card.js',import.meta.url),'utf8');
   assert.match(source,/class="cg-tabs"/);
-  assert.match(source,/\['telecamere','Telecamere'\],\['aspetto','Aspetto'\],\['avanzate','Avanzate'\]/);
-  assert.match(source,/class="cg-more"/);
-  assert.match(source,/Altre opzioni/);
+  assert.match(source,/\['telecamere',this\._t\('tCam'\)\],\['moduli',this\._t\('tMod'\)\],\['aspetto',this\._t\('tAsp'\)\]/);
+  assert.doesNotMatch(source,/class="cg-more"/);
+  assert.doesNotMatch(source,/avanzate/i);
   assert.match(source,/\.cg-field\{display:block;margin:20px 0\}/);
   assert.doesNotMatch(source,/\.cg-fields\{display:grid;grid-template-columns:1fr 1fr/);
   assert.doesNotMatch(source,/Aspetto e disposizione/);
@@ -108,19 +108,19 @@ test('editor has Security Panel style tabs and vertical fields',()=>{
 test('real editor renders one-column Security Panel sections and existing camera config',()=>{
   const Editor=definitions.get('camera-grid-view-card-editor');
   const editor=new Editor();
-  editor.setConfig({cameras:[{name:'Spioncino',image_entity:'image.spioncino',show_preview:true,motion_entity:'binary_sensor.spioncino'}]});
-  assert.match(editor.shadowRoot.innerHTML,/Configurazione telecamere/);
+  editor.setConfig({language:'it',cameras:[{name:'Spioncino',image_entity:'image.spioncino',show_preview:true,motion_entity:'binary_sensor.spioncino'}]});
   assert.match(editor.shadowRoot.innerHTML,/class="cg-tabs"/);
-  assert.match(editor.shadowRoot.innerHTML,/class="cg-more"/);
   assert.match(editor.shadowRoot.innerHTML,/Ultima immagine rilevata/);
   assert.match(editor.shadowRoot.innerHTML,/Rimuovi telecamera/);
   assert.match(editor.shadowRoot.innerHTML,/checked/);
+  assert.doesNotMatch(editor.shadowRoot.innerHTML,/Altre opzioni/);
+  editor._tab='moduli';editor._render();
+  assert.match(editor.shadowRoot.innerHTML,/Entità movimento \(facoltativa\)/);
+  assert.match(editor.shadowRoot.innerHTML,/Abilita i comandi reali/);
   editor._tab='aspetto';editor._render();
-  assert.match(editor.shadowRoot.innerHTML,/Aspetto Edera/);
+  assert.match(editor.shadowRoot.innerHTML,/class="cg-heading">Aspetto</);
   assert.match(editor.shadowRoot.innerHTML,/CAMERA GRID VIEW CARD/);
   assert.doesNotMatch(editor.shadowRoot.innerHTML,/CAMERA GALLERY CARD/);
-  editor._tab='avanzate';editor._render();
-  assert.match(editor.shadowRoot.innerHTML,/Abilita i comandi reali/);
 });
 
 test('dashboard matches Security Panel typography and circular device icons',()=>{
@@ -156,7 +156,7 @@ test('recording command requires global and individual authorizations',async()=>
 });
 
 test('UI requires explicit confirmation for audio and recording',async()=>{
-  const actions=[];const card=new Card();card.setConfig({controls_enabled:true,cameras:[{name:'Ingresso',audio_control_entity:'switch.audio',audio_control_enabled:true,recording_control_entity:'switch.rec',recording_control_enabled:true}]});
+  const actions=[];const card=new Card();card.setConfig({language:'it',controls_enabled:true,cameras:[{name:'Ingresso',audio_control_entity:'switch.audio',audio_control_enabled:true,recording_control_entity:'switch.rec',recording_control_enabled:true}]});
   card.hass={states:{'switch.audio':{state:'on'},'switch.rec':{state:'off'}},callService:async(...args)=>actions.push(args)};
   card._opened=0;card._lastSignature='';card._paint();
   assert.match(card.shadowRoot.innerHTML, /data-request="audio:0"/);
@@ -170,7 +170,7 @@ test('UI requires explicit confirmation for audio and recording',async()=>{
 });
 
 test('stale confirmation does not toggle wrong state',async()=>{
-  const actions=[];const card=new Card();card.setConfig({controls_enabled:true,cameras:[{audio_control_entity:'switch.audio',audio_control_enabled:true}]});
+  const actions=[];const card=new Card();card.setConfig({language:'it',controls_enabled:true,cameras:[{audio_control_entity:'switch.audio',audio_control_enabled:true}]});
   const entity={state:'on'};
   card.hass={states:{'switch.audio':entity},callService:async(...args)=>actions.push(args)};
   card._opened=0;card._requestControl('audio',0);
@@ -183,11 +183,13 @@ test('stale confirmation does not toggle wrong state',async()=>{
 
 test('editor displays only the selected camera to match Security Panel layout',()=>{
   const Editor=definitions.get('camera-grid-view-card-editor');const editor=new Editor();
-  editor.setConfig({cameras:[{name:'Porta'},{name:'Giardino'}]});
+  editor.setConfig({language:'it',cameras:[{name:'Porta'},{name:'Giardino'}]});
   assert.match(editor.shadowRoot.innerHTML,/data-select-camera="0"/);
   assert.match(editor.shadowRoot.innerHTML,/data-select-camera="1"/);
   assert.equal((editor.shadowRoot.innerHTML.match(/class="cg-camera-head"/g)||[]).length,1);
   editor._selectedCamera=1;editor._render();
+  assert.match(editor.shadowRoot.innerHTML, /class="cg-camera-chip active" data-select-camera="1"/);
+  editor._tab='moduli';editor._render();
   assert.match(editor.shadowRoot.innerHTML, /class="cg-camera-chip active" data-select-camera="1"/);
   assert.match(editor.shadowRoot.innerHTML, /Controllo registrazione \(facoltativo\)/);
 });
@@ -202,7 +204,7 @@ test('compact dashboard dimensions and focus border remain as approved',()=>{
 });
 
 test('popup close is circular and image action is fully green',()=>{
-  const card=new Card();card.setConfig({cameras:[{image_entity:'image.ingresso'}]});
+  const card=new Card();card.setConfig({language:'it',cameras:[{image_entity:'image.ingresso'}]});
   card._opened=0;card._lastSignature='';card._paint();
   const html=card.shadowRoot.innerHTML;
   assert.match(html,/\.cg-icon-btn\{[^}]*width:40px;height:40px;border-radius:50%;border:1px solid var\(--cg-border\)/);
@@ -213,7 +215,7 @@ test('popup close is circular and image action is fully green',()=>{
 
 test('details button shares the full tile click target and opens the matching camera popup',()=>{
   const card=new Card();
-  card.setConfig({cameras:[{name:'Ingresso'},{name:'Giardino'}]});
+  card.setConfig({language:'it',cameras:[{name:'Ingresso'},{name:'Giardino'}]});
   const html=card.shadowRoot.innerHTML;
   assert.match(html,/<button[^>]*class="cg-cell[^>]*data-open="0"[^>]*>[\s\S]*?<span class="cg-open-badge">Dettagli e stato [\s\S]*?<\/span><\/button>/);
   const tile={dataset:{open:'1'}};
@@ -236,7 +238,7 @@ test('dashboard uses an inner container instead of viewport-only media rules',()
 });
 
 test('narrow responsive container encloses only grid, not fixed-position modal',()=>{
-  const card=new Card();card.setConfig({cameras:[{name:'Ingresso'}]});
+  const card=new Card();card.setConfig({language:'it',cameras:[{name:'Ingresso'}]});
   card._opened=0;card._lastSignature='';card._paint();
   const html=card.shadowRoot.innerHTML;
   assert.match(html, /<div class="cg-grid-host"><div class="cg-grid">/);
@@ -345,7 +347,7 @@ test('popup has a fixed header (title and X) above a scrolling body, like Entity
 
 test('low battery is shown as a chip in the tile header, not next to the details button',()=>{
   const card=new Card();
-  card.setConfig({cameras:[{name:'Giardino',image_entity:'image.g',battery_entity:'sensor.b'},{name:'Garage',image_entity:'image.h',battery_entity:'sensor.c'}]});
+  card.setConfig({language:'it',cameras:[{name:'Giardino',image_entity:'image.g',battery_entity:'sensor.b'},{name:'Garage',image_entity:'image.h',battery_entity:'sensor.c'}]});
   card.hass={states:{'sensor.b':{state:'14',attributes:{}},'sensor.c':{state:'80',attributes:{}}}};
   const html=card.shadowRoot.innerHTML;
   assert.equal((html.match(/class="cg-bat"/g)||[]).length,1);
@@ -364,10 +366,10 @@ test('opening the popup moves focus to the close button so Escape works',()=>{
 
 test('title and label are shown by default and can be switched off independently',()=>{
   const c=cgConfig({});assert.equal(c.show_eyebrow,true);assert.equal(c.show_title,true);
-  const card=new Card();card.setConfig({show_eyebrow:false,cameras:[{name:'A',image_entity:'image.a'}]});
+  const card=new Card();card.setConfig({language:'it',show_eyebrow:false,cameras:[{name:'A',image_entity:'image.a'}]});
   let html=card.shadowRoot.innerHTML;
   assert.doesNotMatch(html,/class="cg-eyebrow"/);assert.match(html,/class="cg-title">Telecamere<b>\.<\/b>/);
-  card.setConfig({show_title:false,cameras:[{name:'A',image_entity:'image.a'}]});
+  card.setConfig({language:'it',show_title:false,cameras:[{name:'A',image_entity:'image.a'}]});
   html=card.shadowRoot.innerHTML;
   assert.match(html,/class="cg-eyebrow"/);assert.doesNotMatch(html,/class="cg-title"/);
   card.setConfig({show_eyebrow:false,show_title:false,cameras:[]});
@@ -448,4 +450,142 @@ test('confirmation dialogs stay compact (exempt from the fixed height)',()=>{
   card.hass={states:{'switch.au':{state:'on',attributes:{}}}};
   card._opened=0;card._confirmation={kind:'audio',index:0,entity_id:'switch.au',expected:true};card._lastSignature='';card._paint();
   assert.match(card.shadowRoot.innerHTML,/class="cg-dialog cg-compact"/);
+});
+
+
+/* ---------------------------------------------------------------- languages (1.5) */
+test('four languages with the same texts: Italian, English, German, French',()=>{
+  assert.deepEqual(CG_LANGS.map(l=>l[0]),['it','en','de','fr']);
+  const keys=Object.keys(CG_TR.en).sort();
+  for(const l of ['it','de','fr']){
+    assert.deepEqual(Object.keys(CG_TR[l]).sort(),keys,`missing or extra texts in ${l}`);
+  }
+  for(const l of Object.keys(CG_TR))for(const [k,v] of Object.entries(CG_TR[l]))assert.ok(typeof v==='string'&&v.trim(),`${l}.${k} is empty`);
+});
+
+test('language follows the Home Assistant user, the card option wins, English is the fallback',()=>{
+  assert.equal(cgPickLang('auto',{locale:{language:'de'}}),'de');
+  assert.equal(cgPickLang(undefined,{language:'fr-CA'}),'fr');
+  assert.equal(cgPickLang('auto',{locale:{language:'es'}}),'en');
+  assert.equal(cgPickLang('auto',null),'en');
+  assert.equal(cgPickLang('it',{locale:{language:'de'}}),'it');
+  assert.equal(cgConfig({language:'de'}).language,'de');
+  assert.equal(cgConfig({language:'es'}).language,'auto');
+  assert.equal(cgConfig({}).language,'auto');
+  const card=new Card();card.setConfig({cameras:[{name:'A',image_entity:'image.a'}]});
+  card.hass={locale:{language:'de'},states:{}};assert.match(card.shadowRoot.innerHTML,/Details und Status/);
+  card.hass={locale:{language:'fr'},states:{}};assert.match(card.shadowRoot.innerHTML,/Détails et état/);
+  card.hass={locale:{language:'es'},states:{}};assert.match(card.shadowRoot.innerHTML,/Details and status/);
+  card.hass={locale:{language:'it'},states:{}};assert.match(card.shadowRoot.innerHTML,/Dettagli e stato/);
+  card.setConfig({language:'en',cameras:[{name:'A',image_entity:'image.a'}]});
+  assert.match(card.shadowRoot.innerHTML,/Details and status/);
+});
+
+test('default title is translated, a title saved by the user is kept, nothing extra is saved',()=>{
+  assert.equal(cgConfig({}).title,null);
+  assert.equal(cgConfig({title:'Casa'}).title,'Casa');
+  const card=new Card();card.setConfig({language:'en',cameras:[]});assert.match(card.shadowRoot.innerHTML,/class="cg-title">Cameras<b>\.<\/b>/);
+  card.setConfig({language:'fr',cameras:[]});assert.match(card.shadowRoot.innerHTML,/class="cg-title">Caméras<b>\.<\/b>/);
+  card.setConfig({language:'en',title:'Telecamere',cameras:[]});assert.match(card.shadowRoot.innerHTML,/class="cg-title">Telecamere<b>\.<\/b>/);
+  assert.equal('title' in Card.getStubConfig(),false);
+  assert.equal(Card.getStubConfig().type,'custom:camera-grid-view-card');
+});
+
+test('relative times use the right plural and language; the Italian date format is unchanged',()=>{
+  const now=Date.parse('2026-11-19T12:00:00Z');
+  const at=(minutes)=>new Date(now-minutes*60000).toISOString();
+  assert.equal(cgTime(at(0),now,'it').relative,'adesso');
+  assert.equal(cgTime(at(5),now,'it').relative,'5 min fa');
+  assert.equal(cgTime(at(60),now,'it').relative,'1 ora fa');
+  assert.equal(cgTime(at(180),now,'it').relative,'3 ore fa');
+  assert.equal(cgTime(at(1440),now,'it').relative,'1 giorno fa');
+  assert.equal(cgTime(at(2880),now,'en').relative,'2 days ago');
+  assert.equal(cgTime(at(60),now,'en').relative,'1 hour ago');
+  assert.equal(cgTime(at(120),now,'de').relative,'vor 2 Stunden');
+  assert.equal(cgTime(at(5),now,'fr').relative,'il y a 5 min');
+  assert.equal(cgTime(at(5),now).relative,'5 min fa');
+  assert.match(cgTime(at(5),now,'it').exact,/^\d{2}\/\d{2}\/2026, \d{2}:\d{2}$/);
+});
+
+test('popup, confirmations and errors are translated; Italian texts stay as they were',async()=>{
+  const states={'switch.rec':{state:'off',attributes:{}},'image.a':{state:'x',attributes:{}}};
+  for(const [lang,popup,ask,cancel] of [['it','Dettaglio Porta','Vuoi attivare registrazione per Porta?','Annulla'],['en','Details: Porta','Turn on recording for Porta?','Cancel'],['de','Details: Porta','Aufzeichnung für Porta einschalten?','Abbrechen'],['fr','Détails : Porta','Activer l’enregistrement pour Porta ?','Annuler']]){
+    const card=new Card();card.setConfig({language:lang,controls_enabled:true,cameras:[{name:'Porta',image_entity:'image.a',recording_control_entity:'switch.rec',recording_control_enabled:true}]});
+    card.hass={states,callService:async()=>{}};
+    card._opened=0;card._lastSignature='';card._paint();
+    assert.ok(card.shadowRoot.innerHTML.includes(popup),lang+' popup');
+    card._requestControl('recording',0);
+    assert.ok(card.shadowRoot.innerHTML.includes(ask),lang+' confirmation');
+    assert.ok(card.shadowRoot.innerHTML.includes('>'+cancel+'<'),lang+' cancel');
+  }
+  const en=new Card();en.setConfig({language:'en',controls_enabled:true,cameras:[{recording_control_entity:'switch.rec',recording_control_enabled:true}]});
+  en.hass={states:{'switch.rec':{state:'off',attributes:{}}},callService:async()=>{throw new Error('boom');}};
+  en._opened=0;await en._performControl('recording',0);
+  assert.match(en.shadowRoot.innerHTML,/Recording command failed: boom/);
+});
+
+/* ---------------------------------------------------------------- editor tabs (1.5) */
+test('editor has exactly three tabs: Cameras, Modules, Appearance (no Advanced)',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');
+  const names={it:['Telecamere','Moduli','Aspetto'],en:['Cameras','Modules','Appearance'],de:['Kameras','Module','Darstellung'],fr:['Caméras','Modules','Apparence']};
+  for(const [lang,[a,b,c]] of Object.entries(names)){
+    const editor=new Editor();editor.setConfig({language:lang,cameras:[{name:'Porta'}]});
+    const html=editor.shadowRoot.innerHTML;
+    assert.deepEqual([...html.matchAll(/data-tab="(\w+)">([^<]+)</g)].map(m=>[m[1],m[2]]),[['telecamere',a],['moduli',b],['aspetto',c]]);
+    assert.doesNotMatch(html,/data-tab="avanzate"/);
+  }
+});
+
+test('every existing option is still in the editor: nothing was removed, only moved',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');
+  const editor=new Editor();editor.setConfig({language:'it',cameras:[{name:'Porta'}]});
+  const dump=(tab)=>{editor._tab=tab;editor._render();return editor.shadowRoot.innerHTML;};
+  const cam=dump('telecamere'),mod=dump('moduli'),look=dump('aspetto');
+  const keysOf=html=>new Set([...html.matchAll(/data-(?:key|entity-slot)="(?:\d+:)?([a-z_]+)"/g)].map(m=>m[1]));
+  const camKeys=keysOf(cam),modKeys=keysOf(mod),lookKeys=keysOf(look);
+  for(const k of ['camera_entity','image_entity','name','show_preview','live_preview'])assert.ok(camKeys.has(k),'cameras tab: '+k);
+  for(const k of ['motion_entity','last_event_entity','audio_state_entity','audio_control_entity','audio_control_enabled','recording_state_entity','recording_control_entity','recording_control_enabled','battery_entity','auto_popup','controls_enabled','auto_popup_enabled','auto_popup_seconds'])assert.ok(modKeys.has(k),'modules tab: '+k);
+  for(const k of ['show_eyebrow','eyebrow','show_title','title','theme_mode','layout','language'])assert.ok(lookKeys.has(k),'appearance tab: '+k);
+  // Every camera entity setting from the card definition is reachable.
+  const reachable=new Set([...camKeys,...modKeys]);
+  for(const k of Object.keys(CG_DOMAINS))assert.ok(reachable.has(k),'entity not reachable: '+k);
+  assert.doesNotMatch(cam+mod+look,/Altre opzioni|Avanzate/);
+});
+
+test('editor: language option, translated texts, default title and clean config-changed',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');
+  const events=[];const editor=new Editor();editor.dispatchEvent=e=>events.push(e);
+  editor.setConfig({cameras:[{name:'Porta'}]});
+  editor.hass={locale:{language:'de'},states:{}};
+  assert.match(editor.shadowRoot.innerHTML,/data-tab="moduli">Module</);
+  editor._tab='aspetto';editor._render();
+  let html=editor.shadowRoot.innerHTML;
+  assert.match(html,/<option value="auto" selected>Automatisch \(Home Assistant\)<\/option><option value="it" >Italiano<\/option><option value="en" >English<\/option><option value="de" >Deutsch<\/option><option value="fr" >Français<\/option>/);
+  assert.match(html,/data-key="title" value="Kameras"/);
+  editor._change({target:{dataset:{scope:'global',key:'language'},type:'select-one',value:'fr'}});
+  assert.equal(events.at(-1).detail.config.language,'fr');
+  assert.equal('title' in events.at(-1).detail.config,false);
+  assert.match(editor.shadowRoot.innerHTML,/data-tab="moduli">Modules</);
+  assert.match(editor.shadowRoot.innerHTML,/data-key="title" value="Caméras"/);
+  editor._change({target:{dataset:{scope:'global',key:'title'},type:'text',value:'Casa'}});
+  assert.equal(events.at(-1).detail.config.title,'Casa');
+  // Existing settings are never lost when the language is changed.
+  editor.setConfig({language:'it',title:'Telecamere',controls_enabled:true,auto_popup_enabled:true,auto_popup_seconds:20,cameras:[{name:'Porta',image_entity:'image.porta',show_preview:true}]});
+  editor._change({target:{dataset:{scope:'global',key:'language'},type:'select-one',value:'en'}});
+  const out=events.at(-1).detail.config;
+  assert.equal(out.title,'Telecamere');assert.equal(out.controls_enabled,true);assert.equal(out.auto_popup_seconds,20);
+  assert.equal(out.cameras[0].image_entity,'image.porta');assert.equal(out.cameras[0].show_preview,true);
+});
+
+test('modules tab shows the options of the selected camera and the shared ones, in the chosen language',()=>{
+  const Editor=definitions.get('camera-grid-view-card-editor');
+  const editor=new Editor();editor.setConfig({language:'en',cameras:[{name:'Porta'},{name:'Giardino'}]});
+  editor._tab='moduli';editor._selectedCamera=1;editor._render();
+  const html=editor.shadowRoot.innerHTML;
+  assert.match(html,/class="cg-camera-chip active" data-select-camera="1"/);
+  for(const text of ['Motion','Audio','Recording','Battery','Automatic popup','All cameras','Enable real commands','Seconds before automatic closing'])assert.ok(html.includes(text),text);
+  assert.match(html,/data-entity-slot="1:motion_entity"/);
+  assert.doesNotMatch(html,/data-entity-slot="0:motion_entity"/);
+  const empty=new Editor();empty.setConfig({language:'en',cameras:[]});empty._tab='moduli';empty._render();
+  assert.match(empty.shadowRoot.innerHTML,/No camera configured\./);
 });

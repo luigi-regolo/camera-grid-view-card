@@ -23,7 +23,9 @@ The card uses entities and services already available in Home Assistant. Optiona
 
 ![Camera Grid View Card — details popup in Edera Dark mode on a tablet or desktop](assets/camera-grid-view-card-popup-wide-dark.png)
 
-*Camera Grid View Card interface shown with demo data. Displayed information depends on the configured Home Assistant entities and integrations. The live area is illustrated with a generic demo frame.*
+![Camera Grid View Card — Italian, English, German and French](assets/camera-grid-view-card-languages.png)
+
+*Camera Grid View Card interface shown with demo data, including its four languages (Italian, English, German and French). Displayed information depends on the configured Home Assistant entities and integrations. The live area is illustrated with a generic demo frame.*
 
 ## Features
 
@@ -31,7 +33,8 @@ The card uses entities and services already available in Home Assistant. Optiona
 - **Any camera:** Use a `camera.*` entity from any integration, an `image.*` entity, or both.
 - **Optional image previews:** Show the latest camera image directly in the dashboard. Previews are disabled by default.
 - **Optional live view:** Start a live view from the details popup with one tap, or show it directly in the dashboard preview of selected cameras. Disabled by default.
-- **Camera details:** Each tile includes a **Dettagli e stato** button and opens a dedicated details popup.
+- **Four languages:** Italian, English, German and French. The language follows your Home Assistant profile (English when yours is not available) or can be set in the editor.
+- **Camera details:** Each tile includes a **Details and status** button and opens a dedicated details popup.
 - **Optional automatic popup:** Opens the latest detected image when a configured `image.*` entity updates, then closes automatically after a configurable time. Works only while the dashboard is open and visible. Disabled by default.
 - **Image snapshots:** Display the latest available image from a compatible `image.*` or `camera.*` entity.
 - **Motion information:** Show the most recent available movement using configured sensors, event timestamps, and Home Assistant Recorder history when available.
@@ -84,11 +87,11 @@ If the `www` directory was just created, Home Assistant may need to be restarted
 
 Open a dashboard in edit mode, add **Camera Grid View Card**, and configure the available settings.
 
-The editor includes three main sections:
+The editor includes three tabs:
 
-- **Cameras:** Add cameras, assign names, select camera or image entities, configure previews and live view, and set optional status and control entities.
-- **Appearance:** Show or hide and customize the header label and title, and choose the theme and camera grid layout.
-- **Advanced:** Enable optional device controls and the automatic popup when needed.
+- **Cameras:** Add, reorder and remove cameras, assign names, select camera or image entities, and configure previews and live view.
+- **Modules:** Set the optional motion, audio, recording and battery entities of each camera, plus the automatic popup, and enable device controls for all cameras.
+- **Appearance:** Show or hide and customize the header label and title, choose the theme and camera grid layout, and select the language.
 
 Optional entities can be left unconfigured.
 
@@ -97,6 +100,10 @@ Audio and recording controls require compatible `switch.*` or `input_boolean.*` 
 State-only sensors cannot directly control devices.
 
 Controls must be enabled globally and individually for each relevant camera. Each supported action requires explicit confirmation before sending a command to Home Assistant.
+
+### Language
+
+The card is available in Italian, English, German and French. By default it follows the language of the Home Assistant user profile and uses English when that language is not available. To force a language, choose it in the **Appearance** tab or set the `language` option.
 
 ### Live view
 
@@ -141,10 +148,11 @@ Replace the example entities with existing entities in your Home Assistant insta
 
 | Option | Description |
 |---|---|
-| `title` | Main card title. |
+| `title` | Main card title. When not set, the default title is shown in the card language. |
 | `eyebrow` | Small header label above the title. |
 | `show_eyebrow` | Shows the header label. Enabled by default. |
 | `show_title` | Shows the title. Enabled by default. |
+| `language` | `auto` (default, follows the Home Assistant language), `it`, `en`, `de`, or `fr`. |
 | `theme_mode` | `auto`, `light`, or `dark`. |
 | `layout` | `auto`, `1`, `2`, `4`, or `custom`. |
 | `custom_columns` | Number of columns for a custom layout. |
